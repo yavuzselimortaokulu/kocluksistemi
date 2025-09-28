@@ -23,10 +23,11 @@
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--text);font-family:Arial,Helvetica,sans-serif}
     .header{padding:22px;text-align:center;font-size:22px;font-weight:800;color:#93c5fd;text-transform:uppercase}
+    .subheader{font-size:16px;color:#cbd5e1;margin-top:4px;font-weight:600;}
 
     .tabs{display:flex;gap:8px;justify-content:center;max-width:1080px;margin:0 auto 12px;padding:8px;background:var(--panel);border-radius:12px;flex-wrap:wrap}
     .tabs button{flex:1;min-width:160px;padding:12px;border:0;border-radius:10px;background:transparent;color:#cbd5e1;font-weight:700;cursor:pointer}
-    .tabs button.active{background:var(--muted);color:#fff}
+    .tabs button.active{background:var(--ok);color:#fff}
 
     .container{max-width:1080px;margin:16px auto;background:var(--panel);border-radius:16px;padding:22px}
     h3{margin:0 0 14px}
@@ -117,6 +118,7 @@
     #loginPanel button.action{font-size:16px;min-height:52px}
     @media (max-width: 768px){
       .header{font-size:20px}
+      .subheader{font-size:14px}
       #loginPanel .container{padding:18px}
       #loginPanel h3{font-size:24px}
       #loginPanel .tabs{gap:6px}
@@ -127,6 +129,7 @@
     }
     @media (max-width: 480px){
       .header{font-size:18px;padding:18px}
+      .subheader{font-size:12px}
       #loginPanel .tabs{padding:6px}
       #loginPanel .tabs button{font-size:18px;min-width:130px;padding:12px}
       #loginPanel h3{font-size:22px;margin-bottom:10px}
@@ -140,7 +143,9 @@
 </head>
 <body>
 
-  <div class="header">ÖĞRENCİ TAKİP PROGRAMI</div>
+  <div class="header">ÖĞRENCİ TAKİP PROGRAMI
+    <div class="subheader">Yavuz Selim Ortaokulu</div>
+  </div>
   <div id="alert"></div>
 
   <!-- Giriş Alanı -->
@@ -427,7 +432,7 @@
       const name=document.getElementById("tName").value.trim();
       const code=document.getElementById("tCode").value;
       if(!name || !code){ setAlert("Ad Soyad ve kod gerekli."); return; }
-      if(code!=="3381"){ setAlert("Kod hatalı."); return; }
+      if(code!=="703501"){ setAlert("Kod hatalı."); return; }
       currentTeacherName = name;
       currentTeacherId = normalizeId(name);
       if(!currentTeacherId){ setAlert("Geçerli bir ad giriniz."); return; }
@@ -556,17 +561,27 @@
     function listenFavorites(){
       const path=favPath(); if(!path) return;
       db.ref(path).on("value",(snap)=>{
-        const updates={}; const seen=new Set(); const list=[];
+        const uniqueFavorites = new Map(); // Öğrenci numarasına göre benzersiz öğrenciler
+        const list=[];
+        
         snap.forEach(ch=>{
-          const v=ch.val(); const key=ch.key;
-          if(!v || !v.num){ updates[path+"/"+key]=null; return; }
-          const numStr=String(v.num);
-          if(key!==numStr){ updates[path+"/"+key]=null; updates[path+"/"+numStr]=updates[path+"/"+numStr] || v; }
-          if(!seen.has(numStr)){ list.push({num:numStr, name:v.name, sclass:v.sclass}); seen.add(numStr); }
+          const v=ch.val();
+          if(!v || !v.num) return;
+          
+          const numStr = String(v.num);
+          // Aynı numaralı öğrenciyi Map'e ekle (en son eklenen kaydı tut)
+          uniqueFavorites.set(numStr, {num:numStr, name:v.name, sclass:v.sclass});
         });
-        if(Object.keys(updates).length){ db.ref().update(updates).catch(()=>{}); }
-        favoritesCache={}; list.forEach(v=> favoritesCache[v.num]=true);
+        
+        // Map'ten listeye dönüştür
+        uniqueFavorites.forEach((value) => {
+          list.push(value);
+        });
+        
+        favoritesCache={}; 
+        list.forEach(v=> favoritesCache[v.num]=true);
         renderFavorites(list);
+        
         if(activeClassName){
           const btn=[...document.querySelectorAll(".classPick")].find(b=>b.parentElement.querySelector(".className").textContent===activeClassName);
           if(btn) selectClass(activeClassName,btn);
@@ -603,8 +618,16 @@
     function renderFavorites(items){
       const box=document.getElementById("favoritesList");
       if(!items || !items.length){ box.innerHTML="<div class='empty'>Henüz favori yok.</div>"; return; }
-      const seen=new Set();
-      const uniq = items.filter(s=> s && s.num && !seen.has(s.num) && seen.add(s.num));
+      
+      // Öğrenci numarasına göre benzersiz öğrencileri seç
+      const uniqueMap = new Map();
+      items.forEach(item => {
+        if (item && item.num) {
+          uniqueMap.set(item.num, item);
+        }
+      });
+      const uniq = Array.from(uniqueMap.values());
+      
       uniq.sort((a,b)=> (a.sclass||"").localeCompare(b.sclass||"") || (a.name||"").localeCompare(b.name||""));
       box.innerHTML = uniq.map(s=>`
         <div class="studentItem" id="fav-row-${s.num}">
@@ -659,10 +682,13 @@
             }
           }
         }
+        // Ders sıralaması: Türkçe, Sosyal Bilgiler, Din Kültürü, İngilizce, Matematik, Fen Bilimleri
+        const dersSirasi = ["Türkçe", "Sosyal Bilgiler", "Din Kültürü", "İngilizce", "Matematik", "Fen Bilimleri"];
         let html="<table><tr><th>Ders</th><th>O Gün Çözülen</th></tr>";
-        const ks=Object.keys(perLesson);
-        if(!ks.length) html+=`<tr><td colspan="2">Bu gün için veri yok</td></tr>`;
-        else ks.forEach(l=>{ html+=`<tr><td>${l}</td><td>${perLesson[l]}</td></tr>`; });
+        dersSirasi.forEach(l => {
+          const value = perLesson[l] || 0;
+          html += `<tr><td>${l}</td><td>${value}</td></tr>`;
+        });
         html+="</table>";
         tableDiv.innerHTML=html;
       });
@@ -715,10 +741,13 @@
       });
     }
     function renderTotalsTable(totals,targetId){
+      // Ders sıralaması: Türkçe, Sosyal Bilgiler, Din Kültürü, İngilizce, Matematik, Fen Bilimleri
+      const dersSirasi = ["Türkçe", "Sosyal Bilgiler", "Din Kültürü", "İngilizce", "Matematik", "Fen Bilimleri"];
       let html="<table><tr><th>Ders</th><th>Toplam Soru</th></tr>";
-      const ks=Object.keys(totals);
-      if(!ks.length) html+=`<tr><td colspan="2">Veri yok</td></tr>`;
-      else ks.forEach(l=>{ html+=`<tr><td>${l}</td><td>${totals[l]}</td></tr>`; });
+      dersSirasi.forEach(l => {
+        const value = totals[l] || 0;
+        html += `<tr><td>${l}</td><td>${value}</td></tr>`;
+      });
       html+="</table>";
       document.getElementById(targetId).innerHTML=html;
     }
@@ -734,10 +763,13 @@
             }
           }
         }
+        // Ders sıralaması: Türkçe, Sosyal Bilgiler, Din Kültürü, İngilizce, Matematik, Fen Bilimleri
+        const dersSirasi = ["Türkçe", "Sosyal Bilgiler", "Din Kültürü", "İngilizce", "Matematik", "Fen Bilimleri"];
         let html="<table><tr><th>Ders</th><th>O Gün Çözülen</th></tr>";
-        const ks=Object.keys(perLesson);
-        if(!ks.length) html+=`<tr><td colspan="2">Bu gün için veri yok</td></tr>`;
-        else ks.forEach(l=>{ html+=`<tr><td>${l}</td><td>${perLesson[l]}</td></tr>`; });
+        dersSirasi.forEach(l => {
+          const value = perLesson[l] || 0;
+          html += `<tr><td>${l}</td><td>${value}</td></tr>`;
+        });
         html+="</table>";
         document.getElementById("tsdDayTable").innerHTML=html;
       });
@@ -798,7 +830,8 @@
       const dayLabels=["Pzt","Sal","Çar","Per","Cum","Cmt","Paz"];
       const daily=[0,0,0,0,0,0,0];
       const perLessonPerDay = {};
-      const allLessons=["Türkçe","Sosyal Bilgiler","Din Kültürü","İngilizce","Matematik","Fen Bilimleri"];
+      // Ders sıralaması: Türkçe, Sosyal Bilgiler, Din Kültürü, İngilizce, Matematik, Fen Bilimleri
+      const allLessons = ["Türkçe", "Sosyal Bilgiler", "Din Kültürü", "İngilizce", "Matematik", "Fen Bilimleri"];
       allLessons.forEach(l=>perLessonPerDay[l]=[0,0,0,0,0,0,0]);
       if(!lessons) return {dayLabels,daily,perLessonPerDay};
       for(const l in lessons){
@@ -837,10 +870,12 @@
       prepareExportDOM(week, dayLabels, daily, perLessonPerDay);
     }
     function buildMatrixTableHTML(perLessonPerDay, dayLabels){
+      // Ders sıralaması: Türkçe, Sosyal Bilgiler, Din Kültürü, İngilizce, Matematik, Fen Bilimleri
+      const dersSirasi = ["Türkçe", "Sosyal Bilgiler", "Din Kültürü", "İngilizce", "Matematik", "Fen Bilimleri"];
       let html = `<div class="sectionTitle" style="margin:0 0 6px">Ders × Gün Matrisi</div>`;
       html += `<table><tr><th>Ders</th>${dayLabels.map(d=>`<th>${d}</th>`).join("")}</tr>`;
-      Object.keys(perLessonPerDay).forEach(lesson=>{
-        const row=perLessonPerDay[lesson];
+      dersSirasi.forEach(lesson=>{
+        const row=perLessonPerDay[lesson] || [0,0,0,0,0,0];
         html += `<tr><td>${lesson}</td>${row.map(v=>`<td>${v}</td>`).join("")}</tr>`;
       });
       html += `</table>`;

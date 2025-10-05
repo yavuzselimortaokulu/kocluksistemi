@@ -745,7 +745,7 @@ button.exitSmall .label{line-height:1}
     .tabs::-webkit-scrollbar{ display:none; }
     .tabs > * { flex: 0 0 auto; }
 
-    /* Kart/kutu düzenleri */
+    /* Kart/kutu düzenleri (teacher paneline dokunma) */
     .container, .list, #studentPanel, #goalsPage .gp-note{
       margin: 10px var(--page-pad); padding: 12px;
     }
@@ -756,7 +756,7 @@ button.exitSmall .label{line-height:1}
     input[type="number"]::-webkit-outer-spin-button,
     input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
 
-    /* Grid’leri tek kolona indir */
+    /* Grid’leri tek kolona indir (teacher grid'e dokunma) */
     .roleGrid, .classGrid, .twoCol, .grid { 
       display: grid; grid-template-columns: 1fr !important; gap: 10px;
     }
@@ -779,6 +779,7 @@ button.exitSmall .label{line-height:1}
       overflow: auto;
       z-index: 999;
       margin: 0 !important;
+      transform: none !important;
     }
     .modalHead{ position: sticky; top: 0; z-index: 5; background: var(--card, #0b1427); }
 
@@ -806,6 +807,9 @@ button.exitSmall .label{line-height:1}
     /* Butonlar gerekiyorsa tam genişlik */
     .action, .pill, .editBtn { min-height: 40px; }
     .action[style*="max-width"], .pill[style*="max-width"] { width: 100%; max-width: none !important; }
+
+    /* Yatay taşmayı tamamen engelle */
+    html, body { overflow-x: hidden; }
   }
 
   /* iOS dinamik viewport kesilmelerini azalt */
@@ -814,70 +818,116 @@ button.exitSmall .label{line-height:1}
       .asModal{ max-height: calc(100dvh - 20px); }
     }
   }
+
+  /* === TEACHER PANEL spesifik mobil düzeltmeler === */
+  @media (max-width: 600px){
+    /* Öğrenci listesinde çakışmaları önle */
+    #teacherPanel .studentItem.hasDel { padding-right: 100px; } /* (trash + target) için yer */
+    #teacherPanel .leftGroup { display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
+    #teacherPanel .studentNameBtn { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #teacherPanel .starBtn { flex:0 0 auto; }
+    #teacherPanel .delStuFloat, 
+    #teacherPanel .targetFloat { width:36px; height:36px; }
+
+    /* Sınıflar: alt alta olmasın; 2 kolon */
+    #teacherPanel .classGrid { 
+      grid-template-columns: repeat(2, minmax(150px, 1fr)) !important;
+    }
+    #teacherPanel .classCard { min-width:0; }
+
+    /* Sınıf adı buton altında kalmasın */
+    #teacherPanel .classCard{ padding-bottom: 76px !important; }
+    #teacherPanel .classPick{
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 40px;
+    }
+    #teacherPanel .className{
+      margin-bottom: 10px; line-height: 1.15; overflow-wrap: anywhere;
+    }
+  }
+
+  /* === Öğrenci detay modali mobil düzeltmesi (teacher) === */
+  @media (max-width: 600px){
+    .asModal.studentDetail,
+    .asModal[class*="student"],
+    .asModal[id*="student"],
+    #teacherPanel .asModal {
+      position: fixed !important;
+      inset: 0 !important;
+      left: 0 !important; right: 0 !important;
+      top: 0 !important; bottom: 0 !important;
+      width: 100% !important; max-width: none !important;
+      height: 100% !important; max-height: 100dvh !important;
+      margin: 0 !important; border-radius: 0 !important;
+      transform: none !important;
+      box-sizing: border-box;
+    }
+    .asModal .modalBody,
+    .asModal .content,
+    .asModal .inner{
+      max-height: calc(100dvh - 48px);
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  }
 </style>
 
 <script>
-/* Mobil/dikeyde grafik ve yerleşimleri yeniden boyutlandır */
+/* Mobil/dikeyde grafik ve yerleşimleri yeniden boyutlandır + modal scroll kilidi */
 (function(){
   function safe(fn){ try{ fn(); }catch(e){} }
   function resizeCharts(){
     safe(function(){ if(window.weekChart && typeof weekChart.resize === 'function'){ weekChart.resize(); } });
     safe(function(){ if(window._exportChart && typeof _exportChart.resize === 'function'){ _exportChart.resize(); } });
   }
-  /* orientation + resize */
-  addEventListener('orientationchange', function(){ setTimeout(resizeCharts, 250); }, { passive:true });
-  addEventListener('resize', function(){ setTimeout(resizeCharts, 150); }, { passive:true });
 
-  /* Modal açılıp kapanınca da tetikleyin (varsa) */
-  safe(function(){
-    const obs = new MutationObserver(function(muts){
-      for(const m of muts){
-        if(m.type === 'attributes' && m.attributeName === 'style'){ setTimeout(resizeCharts, 75); }
+  /* Modal açıkken arka plan kaymasını kilitle */
+  var prevY = 0, locked = false;
+  function lockScroll(on){
+    try{
+      if(on && !locked){
+        prevY = window.scrollY || 0;
+        document.body.style.position = 'fixed';
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
+        document.body.style.top = '-' + prevY + 'px';
+        locked = true;
+      }else if(!on && locked){
+        document.body.style.position = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
+        var y = -parseInt(document.body.style.top || '0', 10) || prevY;
+        document.body.style.top = '';
+        window.scrollTo(0, y);
+        locked = false;
       }
-    });
-    document.querySelectorAll('.asModal').forEach(function(modal){
-      obs.observe(modal, { attributes:true, attributeFilter:['style'] });
-    });
-  });
+    }catch(e){}
+  }
+  function anyModalOpen(){
+    try{
+      var modals = Array.from(document.querySelectorAll('.asModal'));
+      return modals.some(function(el){
+        var r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      });
+    }catch(e){ return false; }
+  }
+
+  function onLayoutChange(){
+    resizeCharts();
+    lockScroll(anyModalOpen());
+  }
+
+  addEventListener('orientationchange', function(){ setTimeout(onLayoutChange, 250); }, { passive:true });
+  addEventListener('resize', function(){ setTimeout(onLayoutChange, 150); }, { passive:true });
+
+  var obs = new MutationObserver(function(){ setTimeout(onLayoutChange, 75); });
+  obs.observe(document.documentElement, { childList:true, subtree:true, attributes:true, attributeFilter:['style','class'] });
+
+  setTimeout(onLayoutChange, 200);
 })();
 </script>
-
-<style>
-@media (max-width: 600px){
-  /* === ÖĞRETMEN EKRANI (mobil) özel düzeltmeler === */
-  /* Öğrenci listesinde çakışmaları önle */
-  #teacherPanel .studentItem.hasDel { padding-right: 100px; } /* (trash + target) için yer */
-  #teacherPanel .leftGroup { display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
-  #teacherPanel .studentNameBtn { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  #teacherPanel .starBtn { flex:0 0 auto; }
-  #teacherPanel .delStuFloat, 
-  #teacherPanel .targetFloat { width:36px; height:36px; }
-
-  /* Sınıflar: alt alta olmasın; eski görünüme benzer 2 kolon */
-  #teacherPanel .classGrid { 
-    grid-template-columns: repeat(2, minmax(150px, 1fr)) !important;
-  }
-  #teacherPanel .classCard { min-width:0; }
-}
-</style>
-
-<style>
-@media (max-width: 600px){
-  /* Öğretmen ekranı: sınıf adı butonun altında kalmasın */
-  #teacherPanel .classCard{ padding-bottom: 76px !important; }
-  #teacherPanel .classPick{
-    white-space: nowrap; 
-    overflow: hidden; 
-    text-overflow: ellipsis; 
-    min-height: 40px;
-  }
-  #teacherPanel .className{
-    margin-bottom: 10px;
-    line-height: 1.15;
-    overflow-wrap: anywhere;
-  }
-}
-</style>
 <!-- === /MOBILE OVERRIDES === -->
 </head>
 <style>

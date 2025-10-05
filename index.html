@@ -722,213 +722,36 @@ button.exitSmall .label{line-height:1}
 }
 </style>
 
-<!-- === MOBILE OVERRIDES (dikey mod için) === -->
+<!-- === TEACHER: REMOVE MONTHLY TAB === -->
 <style>
-  /* Genel güvenli dokunuşlar */
-  * { min-width: 0; }
-  html, body { width: 100%; }
-  :root { --page-pad: 12px; }
-
-  /* Küçük ekranlar: 600px ve altı */
-  @media (max-width: 600px){
-    body { font-size: 15px; line-height: 1.35; }
-
-    /* Üst başlık ve alt başlık */
-    .header { padding: 12px var(--page-pad); font-size: 22px; }
-    .header .subheader { font-size: 12px; opacity: .9; }
-
-    /* Sekmeler: taşmadan yatay kaydırılabilir */
-    .tabs{
-      display:flex; gap:8px; padding: 0 var(--page-pad);
-      overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
-    }
-    .tabs::-webkit-scrollbar{ display:none; }
-    .tabs > * { flex: 0 0 auto; }
-
-    /* Kart/kutu düzenleri (teacher paneline dokunma) */
-    .container, .list, #studentPanel, #goalsPage .gp-note{
-      margin: 10px var(--page-pad); padding: 12px;
-    }
-
-    /* Form elemanları: parmak dostu */
-    input, select, button, textarea { font-size: 16px; }
-    input[type="number"] { -moz-appearance: textfield; }
-    input[type="number"]::-webkit-outer-spin-button,
-    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
-
-    /* Grid’leri tek kolona indir (teacher grid'e dokunma) */
-    .roleGrid, .classGrid, .twoCol, .grid { 
-      display: grid; grid-template-columns: 1fr !important; gap: 10px;
-    }
-    .classGrid .classCard { min-width: 0; }
-
-    /* Öğrenci araç çubuğu ve küçük satırlar: kaymayı engelle */
-    .student-toolbar, .smallRow { display:flex; flex-wrap: wrap; gap: 8px; }
-
-    /* Tablolar taşarsa yatay kaydır */
-    table{ display:block; width: max-content; max-width: 100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
-    table th, table td { white-space: nowrap; }
-
-    /* Modallar: ekrana otursun, başlık sabitlensin */
-    .asModal{
-      position: fixed !important;
-      inset: 10px !important;
-      max-width: none !important;
-      width: auto; height: auto;
-      max-height: calc(100vh - 20px);
-      overflow: auto;
-      z-index: 999;
-      margin: 0 !important;
-      transform: none !important;
-    }
-    .modalHead{ position: sticky; top: 0; z-index: 5; background: var(--card, #0b1427); }
-
-    /* Takvim ve gün hücreleri daha sıkı */
-    .calendarWrap .calHeader{ gap: 8px; padding: 6px 8px; }
-    .calGrid{ gap: 4px; }
-    .calCell{ min-height: 40px; }
-    .calDay{ font-size: 12px; }
-
-    /* Haftalık/Aylık grafikler: ekran genişliğine göre sabitle */
-    #weekChartWrap canvas,
-    #exportChart{
-      width: 100% !important;
-      height: 200px !important;
-    }
-
-    /* Hedef (Goals) tablo ızgarası */
-    .gp-table { margin: 0 var(--page-pad); }
-    .gp-row{ grid-template-columns: 1fr 100px !important; padding: 10px 12px; }
-    .gp-input{ min-height: 38px; font-size: 15px; }
-
-    /* Uzun başlık/isimlerin taşmasını engelle */
-    h1,h2,h3,.sectionTitle,#tsdTitle,#studentPanelTitle{ overflow-wrap:anywhere; word-break:break-word; }
-
-    /* Butonlar gerekiyorsa tam genişlik */
-    .action, .pill, .editBtn { min-height: 40px; }
-    .action[style*="max-width"], .pill[style*="max-width"] { width: 100%; max-width: none !important; }
-
-    /* Yatay taşmayı tamamen engelle */
-    html, body { overflow-x: hidden; }
-  }
-
-  /* iOS dinamik viewport kesilmelerini azalt */
-  @supports (height: 100dvh){
-    @media (max-width: 600px){
-      .asModal{ max-height: calc(100dvh - 20px); }
-    }
-  }
-
-  /* === TEACHER PANEL spesifik mobil düzeltmeler === */
-  @media (max-width: 600px){
-    /* Öğrenci listesinde çakışmaları önle */
-    #teacherPanel .studentItem.hasDel { padding-right: 100px; } /* (trash + target) için yer */
-    #teacherPanel .leftGroup { display:flex; align-items:center; gap:8px; flex:1; min-width:0; }
-    #teacherPanel .studentNameBtn { flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    #teacherPanel .starBtn { flex:0 0 auto; }
-    #teacherPanel .delStuFloat, 
-    #teacherPanel .targetFloat { width:36px; height:36px; }
-
-    /* Sınıflar: alt alta olmasın; 2 kolon */
-    #teacherPanel .classGrid { 
-      grid-template-columns: repeat(2, minmax(150px, 1fr)) !important;
-    }
-    #teacherPanel .classCard { min-width:0; }
-
-    /* Sınıf adı buton altında kalmasın */
-    #teacherPanel .classCard{ padding-bottom: 76px !important; }
-    #teacherPanel .classPick{
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 40px;
-    }
-    #teacherPanel .className{
-      margin-bottom: 10px; line-height: 1.15; overflow-wrap: anywhere;
-    }
-  }
-
-  /* === Öğrenci detay modali mobil düzeltmesi (teacher) === */
-  @media (max-width: 600px){
-    .asModal.studentDetail,
-    .asModal[class*="student"],
-    .asModal[id*="student"],
-    #teacherPanel .asModal {
-      position: fixed !important;
-      inset: 0 !important;
-      left: 0 !important; right: 0 !important;
-      top: 0 !important; bottom: 0 !important;
-      width: 100% !important; max-width: none !important;
-      height: 100% !important; max-height: 100dvh !important;
-      margin: 0 !important; border-radius: 0 !important;
-      transform: none !important;
-      box-sizing: border-box;
-    }
-    .asModal .modalBody,
-    .asModal .content,
-    .asModal .inner{
-      max-height: calc(100dvh - 48px);
-      overflow: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-  }
+/* Hide the Monthly tab button and its content in the teacher modal */
+#teacherStudentDetail #repTabMonthlyBtn,
+#teacherStudentDetail #repTab-monthly{ display:none !important; }
 </style>
-
 <script>
-/* Mobil/dikeyde grafik ve yerleşimleri yeniden boyutlandır + modal scroll kilidi */
 (function(){
-  function safe(fn){ try{ fn(); }catch(e){} }
-  function resizeCharts(){
-    safe(function(){ if(window.weekChart && typeof weekChart.resize === 'function'){ weekChart.resize(); } });
-    safe(function(){ if(window._exportChart && typeof _exportChart.resize === 'function'){ _exportChart.resize(); } });
+  // Force default to weekly when opening the teacher report modal
+  if (typeof openReportModal === 'function'){
+    const __origOpen = openReportModal;
+    window.openReportModal = function(){
+      var ov = document.getElementById('reportOverlay');
+      var box = document.getElementById('teacherStudentDetail');
+      if(ov) ov.style.display='block';
+      if(box){ box.style.display='block'; }
+      try{ showReportTab('weekly'); }catch(_){}
+    };
   }
 
-  /* Modal açıkken arka plan kaymasını kilitle */
-  var prevY = 0, locked = false;
-  function lockScroll(on){
+  // Remove Monthly tab elements entirely (defensive)
+  document.addEventListener('DOMContentLoaded', function(){
     try{
-      if(on && !locked){
-        prevY = window.scrollY || 0;
-        document.body.style.position = 'fixed';
-        document.body.style.left = '0';
-        document.body.style.right = '0';
-        document.body.style.width = '100%';
-        document.body.style.top = '-' + prevY + 'px';
-        locked = true;
-      }else if(!on && locked){
-        document.body.style.position = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-        document.body.style.width = '';
-        var y = -parseInt(document.body.style.top || '0', 10) || prevY;
-        document.body.style.top = '';
-        window.scrollTo(0, y);
-        locked = false;
-      }
+      var btn = document.getElementById('repTabMonthlyBtn'); if(btn) btn.remove();
+      var pane = document.getElementById('repTab-monthly'); if(pane) pane.remove();
     }catch(e){}
-  }
-  function anyModalOpen(){
-    try{
-      var modals = Array.from(document.querySelectorAll('.asModal'));
-      return modals.some(function(el){
-        var r = el.getBoundingClientRect();
-        return r.width > 0 && r.height > 0;
-      });
-    }catch(e){ return false; }
-  }
-
-  function onLayoutChange(){
-    resizeCharts();
-    lockScroll(anyModalOpen());
-  }
-
-  addEventListener('orientationchange', function(){ setTimeout(onLayoutChange, 250); }, { passive:true });
-  addEventListener('resize', function(){ setTimeout(onLayoutChange, 150); }, { passive:true });
-
-  var obs = new MutationObserver(function(){ setTimeout(onLayoutChange, 75); });
-  obs.observe(document.documentElement, { childList:true, subtree:true, attributes:true, attributeFilter:['style','class'] });
-
-  setTimeout(onLayoutChange, 200);
+  });
 })();
 </script>
-<!-- === /MOBILE OVERRIDES === -->
+<!-- === /TEACHER: REMOVE MONTHLY TAB === -->
 </head>
 <style>
 /* ===== Ders Hedefleri (Goals Page) — Modern görünüm ===== */

@@ -722,27 +722,73 @@ button.exitSmall .label{line-height:1}
 }
 </style>
 
-<!-- === GOALS TITLE UNDER MAIN SUBHEADER (MOBILE) === -->
+<!-- === COMBINED PATCH: header title under subheader, remove monthly, hide 'Göster', student entry mobile === -->
 <style>
-@media (max-width: 600px){
-  /* Goals başlığını header altına taşıdığımızda gp-header içindekini gizle */
-  #goalsPage .gp-title{ display: none !important; }
+/* 1) Header: Goals başlığını her boyutta subheader altına taşı (Goals içindekini gizle) */
+#goalsPage .gp-title{ display: none !important; }
+.header .header-goals-title{
+  display: block; margin-top: 6px; font-weight: 800;
+  font-size: clamp(18px, 2.2vw, 24px); line-height: 1.15; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
 
-  /* Header altında yeni başlık görünümü */
-  .header .header-goals-title{
-    display: block;
-    margin-top: 6px;
-    font-weight: 800;
-    font-size: clamp(18px, 5vw, 22px);
-    line-height: 1.15;
-    text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+/* 2) Öğretmen modal: Aylık sekmesini kaldır */
+#teacherStudentDetail #repTabMonthlyBtn,
+#teacherStudentDetail #repTab-monthly{ display:none !important; }
+
+/* 3) Favoriler: 'Göster' butonunu gizle */
+#favoritesSection .editBtn{ display: none !important; }
+
+/* 4) Öğrenci soru giriş (student entry) mobil düzen */
+@media (max-width: 600px){
+  #studentTab-entry input[type="number"],
+  #studentTab-entry .goalInput{ min-height: 40px; font-size: 16px; }
+
+  #studentTab-entry .lessonRow.dense{
+    display: grid !important;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "chip pct"
+      "controls controls";
+    gap: 8px 10px;
+    align-items: center;
+  }
+  #studentTab-entry .lessonRow.dense .chip{ grid-area: chip; font-size: 14px; }
+  #studentTab-entry .lessonRow.dense .pctBadge{ grid-area: pct; justify-self: end; }
+
+  #studentTab-entry .lessonControls{
+    grid-area: controls;
+    margin-left: 0;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+  }
+  #studentTab-entry .lessonControls .countWrap{
+    display: grid; grid-template-columns: auto 1fr auto; gap: 6px; align-items:center;
+  }
+  #studentTab-entry .lessonControls input[type="number"]{ width: 88px; }
+
+  #studentTab-entry .goalWrap{
+    display:grid; grid-template-columns:auto 1fr; gap:6px; align-items:center; justify-self:end;
+  }
+  #studentTab-entry .goalWrap .goalIcon{ line-height:1; }
+  #studentTab-entry .goalInput{ max-width: 96px; }
+
+  /* Çok dar cihazlar */
+  @media (max-width: 360px){
+    #studentTab-entry .lessonControls{
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "count goal";
+    }
+    #studentTab-entry .lessonControls .countWrap{ grid-area: count; }
+    #studentTab-entry .lessonControls .goalWrap{ grid-area: goal; justify-self: start; }
   }
 }
 </style>
 <script>
+// 1) Header başlığını subheader altına yerleştir (Goals görünürken)
 (function(){
   function ensureGoalsTitle(){
     try{
@@ -750,46 +796,28 @@ button.exitSmall .label{line-height:1}
       var sub = header && header.querySelector('.subheader');
       var srcTitle = document.querySelector('#goalsPage .gp-title');
       if(!header || !sub || !srcTitle) return;
-
-      var txt = srcTitle.textContent.trim();
+      var txt = (srcTitle.textContent||'').trim();
       var el = header.querySelector('.header-goals-title');
       if(!el){
         el = document.createElement('div');
         el.className = 'header-goals-title';
         sub.insertAdjacentElement('afterend', el);
       }
-      if(el.textContent.trim() !== txt){ el.textContent = txt; }
-
-      // Görünürlüğü sadece goals sayfası görünürken aç
+      if((el.textContent||'').trim() !== txt){ el.textContent = txt; }
       var gp = document.getElementById('goalsPage');
-      var isVisible = gp && gp.offsetParent !== null && window.getComputedStyle(gp).display !== 'none';
-      el.style.display = (isVisible ? '' : 'none');
+      var gpVisible = gp && window.getComputedStyle(gp).display !== 'none';
+      el.style.display = gpVisible ? '' : 'none';
     }catch(e){}
   }
-
-  document.addEventListener('DOMContentLoaded', function(){
-    setTimeout(ensureGoalsTitle, 50);
-  });
-
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(ensureGoalsTitle, 50); });
   var mo = new MutationObserver(function(){ setTimeout(ensureGoalsTitle, 50); });
   mo.observe(document.documentElement, {subtree:true, attributes:true, childList:true, attributeFilter:['style','class']});
-
   window.addEventListener('resize', function(){ setTimeout(ensureGoalsTitle, 100); }, {passive:true});
   window.addEventListener('orientationchange', function(){ setTimeout(ensureGoalsTitle, 200); }, {passive:true});
 })();
-</script>
-<!-- === /GOALS TITLE UNDER MAIN SUBHEADER (MOBILE) === -->
 
-
-<!-- === TEACHER: REMOVE MONTHLY TAB === -->
-<style>
-/* Hide the Monthly tab button and its content in the teacher modal */
-#teacherStudentDetail #repTabMonthlyBtn,
-#teacherStudentDetail #repTab-monthly{ display:none !important; }
-</style>
-<script>
+// 2) Öğretmen modal açılışında Weekly'i varsayılan yap ve Aylık öğelerini kaldır
 (function(){
-  // Force default to weekly when opening the teacher report modal
   if (typeof openReportModal === 'function'){
     const __origOpen = openReportModal;
     window.openReportModal = function(){
@@ -800,8 +828,6 @@ button.exitSmall .label{line-height:1}
       try{ showReportTab('weekly'); }catch(_){}
     };
   }
-
-  // Remove Monthly tab elements entirely (defensive)
   document.addEventListener('DOMContentLoaded', function(){
     try{
       var btn = document.getElementById('repTabMonthlyBtn'); if(btn) btn.remove();
@@ -810,65 +836,7 @@ button.exitSmall .label{line-height:1}
   });
 })();
 </script>
-<!-- === /TEACHER: REMOVE MONTHLY TAB === -->
-
-<!-- === GOALS TITLE UNDER MAIN SUBHEADER (ALL SIZES) === -->
-<style>
-/* Goals başlığını her boyutta header altına taşı: gp-header içindeki başlık gizlenir */
-#goalsPage .gp-title{ display: none !important; }
-/* Header altına eklenecek başlığın görünümü */
-.header .header-goals-title{
-  display: block;
-  margin-top: 6px;
-  font-weight: 800;
-  font-size: clamp(18px, 2.2vw, 24px);
-  line-height: 1.15;
-  text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-</style>
-<script>
-(function(){
-  function ensureGoalsTitle(){
-    try{
-      var header = document.querySelector('.header');
-      var sub = header && header.querySelector('.subheader');
-      var srcTitle = document.querySelector('#goalsPage .gp-title');
-      if(!header || !sub || !srcTitle) return;
-
-      var txt = (srcTitle.textContent || '').trim();
-      var el = header.querySelector('.header-goals-title');
-      if(!el){
-        el = document.createElement('div');
-        el.className = 'header-goals-title';
-        sub.insertAdjacentElement('afterend', el);
-      }
-      if((el.textContent || '').trim() !== txt){ el.textContent = txt; }
-
-      // Sadece Goals sayfası görünürken göster
-      var gp = document.getElementById('goalsPage');
-      var gpVisible = gp && window.getComputedStyle(gp).display !== 'none';
-      el.style.display = gpVisible ? '' : 'none';
-    }catch(e){/* no-op */}
-  }
-
-  document.addEventListener('DOMContentLoaded', function(){ setTimeout(ensureGoalsTitle, 50); });
-  var mo = new MutationObserver(function(){ setTimeout(ensureGoalsTitle, 50); });
-  mo.observe(document.documentElement, {subtree:true, childList:true, attributes:true, attributeFilter:['style','class']});
-  window.addEventListener('resize', function(){ setTimeout(ensureGoalsTitle, 100); }, {passive:true});
-  window.addEventListener('orientationchange', function(){ setTimeout(ensureGoalsTitle, 200); }, {passive:true});
-})();
-</script>
-<!-- === /GOALS TITLE UNDER MAIN SUBHEADER (ALL SIZES) === -->
-
-<!-- === HIDE 'GÖSTER' BUTTON IN FAVORITES === -->
-<style>
-/* Öğretmen paneli > Favoriler bölümündeki 'Göster' butonlarını kaldır */
-#favoritesSection .editBtn{ display: none !important; }
-</style>
-<!-- === /HIDE 'GÖSTER' BUTTON IN FAVORITES === -->
+<!-- === /COMBINED PATCH === -->
 </head>
 <style>
 /* ===== Ders Hedefleri (Goals Page) — Modern görünüm ===== */

@@ -722,6 +722,65 @@ button.exitSmall .label{line-height:1}
 }
 </style>
 
+<!-- === GOALS TITLE UNDER MAIN SUBHEADER (MOBILE) === -->
+<style>
+@media (max-width: 600px){
+  /* Goals başlığını header altına taşıdığımızda gp-header içindekini gizle */
+  #goalsPage .gp-title{ display: none !important; }
+
+  /* Header altında yeni başlık görünümü */
+  .header .header-goals-title{
+    display: block;
+    margin-top: 6px;
+    font-weight: 800;
+    font-size: clamp(18px, 5vw, 22px);
+    line-height: 1.15;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+</style>
+<script>
+(function(){
+  function ensureGoalsTitle(){
+    try{
+      var header = document.querySelector('.header');
+      var sub = header && header.querySelector('.subheader');
+      var srcTitle = document.querySelector('#goalsPage .gp-title');
+      if(!header || !sub || !srcTitle) return;
+
+      var txt = srcTitle.textContent.trim();
+      var el = header.querySelector('.header-goals-title');
+      if(!el){
+        el = document.createElement('div');
+        el.className = 'header-goals-title';
+        sub.insertAdjacentElement('afterend', el);
+      }
+      if(el.textContent.trim() !== txt){ el.textContent = txt; }
+
+      // Görünürlüğü sadece goals sayfası görünürken aç
+      var gp = document.getElementById('goalsPage');
+      var isVisible = gp && gp.offsetParent !== null && window.getComputedStyle(gp).display !== 'none';
+      el.style.display = (isVisible ? '' : 'none');
+    }catch(e){}
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(ensureGoalsTitle, 50);
+  });
+
+  var mo = new MutationObserver(function(){ setTimeout(ensureGoalsTitle, 50); });
+  mo.observe(document.documentElement, {subtree:true, attributes:true, childList:true, attributeFilter:['style','class']});
+
+  window.addEventListener('resize', function(){ setTimeout(ensureGoalsTitle, 100); }, {passive:true});
+  window.addEventListener('orientationchange', function(){ setTimeout(ensureGoalsTitle, 200); }, {passive:true});
+})();
+</script>
+<!-- === /GOALS TITLE UNDER MAIN SUBHEADER (MOBILE) === -->
+
+
 <!-- === TEACHER: REMOVE MONTHLY TAB === -->
 <style>
 /* Hide the Monthly tab button and its content in the teacher modal */

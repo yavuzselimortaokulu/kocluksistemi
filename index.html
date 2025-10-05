@@ -721,6 +721,128 @@ button.exitSmall .label{line-height:1}
   #teacherStudentDetail.asModal{inset:auto auto 2% 50%; width:96vw; }
 }
 </style>
+
+<!-- === MOBILE OVERRIDES (dikey mod için) === -->
+<style>
+  /* Genel güvenli dokunuşlar */
+  * { min-width: 0; }
+  html, body { width: 100%; }
+  :root { --page-pad: 12px; }
+
+  /* Küçük ekranlar: 600px ve altı */
+  @media (max-width: 600px){
+    body { font-size: 15px; line-height: 1.35; }
+
+    /* Üst başlık ve alt başlık */
+    .header { padding: 12px var(--page-pad); font-size: 22px; }
+    .header .subheader { font-size: 12px; opacity: .9; }
+
+    /* Sekmeler: taşmadan yatay kaydırılabilir */
+    .tabs{
+      display:flex; gap:8px; padding: 0 var(--page-pad);
+      overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+    }
+    .tabs::-webkit-scrollbar{ display:none; }
+    .tabs > * { flex: 0 0 auto; }
+
+    /* Kart/kutu düzenleri */
+    .container, .list, #studentPanel, #teacherPanel, #goalsPage .gp-note{
+      margin: 10px var(--page-pad); padding: 12px;
+    }
+
+    /* Form elemanları: parmak dostu */
+    input, select, button, textarea { font-size: 16px; }
+    input[type="number"] { -moz-appearance: textfield; }
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+
+    /* Grid’leri tek kolona indir */
+    .roleGrid, .teacherGrid, .classGrid, .twoCol, .grid { 
+      display: grid; grid-template-columns: 1fr !important; gap: 10px;
+    }
+    .classGrid .classCard { min-width: 0; }
+
+    /* Öğrenci araç çubuğu ve küçük satırlar: kaymayı engelle */
+    .student-toolbar, .smallRow { display:flex; flex-wrap: wrap; gap: 8px; }
+
+    /* Tablolar taşarsa yatay kaydır */
+    table{ display:block; width: max-content; max-width: 100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    table th, table td { white-space: nowrap; }
+
+    /* Modallar: ekrana otursun, başlık sabitlensin */
+    .asModal{
+      position: fixed !important;
+      inset: 10px !important;
+      max-width: none !important;
+      width: auto; height: auto;
+      max-height: calc(100vh - 20px);
+      overflow: auto;
+      z-index: 999;
+      margin: 0 !important;
+    }
+    .modalHead{ position: sticky; top: 0; z-index: 5; background: var(--card, #0b1427); }
+
+    /* Takvim ve gün hücreleri daha sıkı */
+    .calendarWrap .calHeader{ gap: 8px; padding: 6px 8px; }
+    .calGrid{ gap: 4px; }
+    .calCell{ min-height: 40px; }
+    .calDay{ font-size: 12px; }
+
+    /* Haftalık/Aylık grafikler: ekran genişliğine göre sabitle */
+    #weekChartWrap canvas,
+    #tMonthChartWrap canvas,
+    #exportChart{
+      width: 100% !important;
+      height: 200px !important;
+    }
+
+    /* Hedef (Goals) tablo ızgarası */
+    .gp-table { margin: 0 var(--page-pad); }
+    .gp-row{ grid-template-columns: 1fr 100px !important; padding: 10px 12px; }
+    .gp-input{ min-height: 38px; font-size: 15px; }
+
+    /* Uzun başlık/isimlerin taşmasını engelle */
+    h1,h2,h3,.sectionTitle,#tsdTitle,#studentPanelTitle{ overflow-wrap:anywhere; word-break:break-word; }
+
+    /* Butonlar gerekiyorsa tam genişlik */
+    .action, .pill, .editBtn { min-height: 40px; }
+    .action[style*="max-width"], .pill[style*="max-width"] { width: 100%; max-width: none !important; }
+  }
+
+  /* iOS dinamik viewport kesilmelerini azalt */
+  @supports (height: 100dvh){
+    @media (max-width: 600px){
+      .asModal{ max-height: calc(100dvh - 20px); }
+    }
+  }
+</style>
+
+<script>
+/* Mobil/dikeyde grafik ve yerleşimleri yeniden boyutlandır */
+(function(){
+  function safe(fn){ try{ fn(); }catch(e){} }
+  function resizeCharts(){
+    safe(function(){ if(window.weekChart && typeof weekChart.resize === 'function'){ weekChart.resize(); } });
+    safe(function(){ if(window._exportChart && typeof _exportChart.resize === 'function'){ _exportChart.resize(); } });
+  }
+  /* orientation + resize */
+  addEventListener('orientationchange', function(){ setTimeout(resizeCharts, 250); }, { passive:true });
+  addEventListener('resize', function(){ setTimeout(resizeCharts, 150); }, { passive:true });
+
+  /* Modal açılıp kapanınca da tetikleyin (varsa) */
+  safe(function(){
+    const obs = new MutationObserver(function(muts){
+      for(const m of muts){
+        if(m.type === 'attributes' && m.attributeName === 'style'){ setTimeout(resizeCharts, 75); }
+      }
+    });
+    document.querySelectorAll('.asModal').forEach(function(modal){
+      obs.observe(modal, { attributes:true, attributeFilter:['style'] });
+    });
+  });
+})();
+</script>
+<!-- === /MOBILE OVERRIDES === -->
 </head>
 <style>
 /* ===== Ders Hedefleri (Goals Page) — Modern görünüm ===== */

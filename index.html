@@ -722,73 +722,69 @@ button.exitSmall .label{line-height:1}
 }
 </style>
 
-<!-- === COMBINED PATCH: header title under subheader, remove monthly, hide 'Göster', student entry mobile === -->
+<!-- === GOALS HEADER MOBILE PATCH === -->
 <style>
-/* 1) Header: Goals başlığını her boyutta subheader altına taşı (Goals içindekini gizle) */
-#goalsPage .gp-title{ display: none !important; }
-.header .header-goals-title{
-  display: block; margin-top: 6px; font-weight: 800;
-  font-size: clamp(18px, 2.2vw, 24px); line-height: 1.15; text-align: center;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-/* 2) Öğretmen modal: Aylık sekmesini kaldır */
-#teacherStudentDetail #repTabMonthlyBtn,
-#teacherStudentDetail #repTab-monthly{ display:none !important; }
-
-/* 3) Favoriler: 'Göster' butonunu gizle */
-#favoritesSection .editBtn{ display: none !important; }
-
-/* 4) Öğrenci soru giriş (student entry) mobil düzen */
 @media (max-width: 600px){
-  #studentTab-entry input[type="number"],
-  #studentTab-entry .goalInput{ min-height: 40px; font-size: 16px; }
-
-  #studentTab-entry .lessonRow.dense{
+  /* Başlığı butonların üstünde ve tek satırda göster */
+  #goalsPage .gp-header{
     display: grid !important;
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "chip pct"
-      "controls controls";
-    gap: 8px 10px;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-auto-rows: auto;
+    row-gap: 8px;
+    column-gap: 8px;
     align-items: center;
+    justify-items: stretch;
+    padding: 10px var(--page-pad, 12px);
   }
-  #studentTab-entry .lessonRow.dense .chip{ grid-area: chip; font-size: 14px; }
-  #studentTab-entry .lessonRow.dense .pctBadge{ grid-area: pct; justify-self: end; }
-
-  #studentTab-entry .lessonControls{
-    grid-area: controls;
-    margin-left: 0;
-    display: grid;
-    grid-template-columns: auto 1fr auto auto;
-    gap: 8px;
-    align-items: center;
-    width: 100%;
+  #goalsPage .gp-left,
+  #goalsPage .gp-actions{ display: contents; }
+  #goalsPage .gp-title{
+    grid-column: 1 / -1;
+    text-align: center;
+    line-height: 1.15;
+    font-weight: 800;
+    font-size: clamp(18px, 5.2vw, 24px);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  #studentTab-entry .lessonControls .countWrap{
-    display: grid; grid-template-columns: auto 1fr auto; gap: 6px; align-items:center;
+  /* Üç buton tek satırda */
+  #goalsPage .gp-back{ grid-column: 1; }
+  #goalsPage .gp-clear{ grid-column: 2; }
+  #goalsPage .gp-actions .action{ grid-column: 3; }
+  #goalsPage .gp-btn{
+    width: 100%; justify-content: center;
+    min-height: 42px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  #studentTab-entry .lessonControls input[type="number"]{ width: 88px; }
-
-  #studentTab-entry .goalWrap{
-    display:grid; grid-template-columns:auto 1fr; gap:6px; align-items:center; justify-self:end;
-  }
-  #studentTab-entry .goalWrap .goalIcon{ line-height:1; }
-  #studentTab-entry .goalInput{ max-width: 96px; }
-
-  /* Çok dar cihazlar */
+  /* Çok dar cihazlar: 2 sütun + Kaydet alta */
   @media (max-width: 360px){
-    #studentTab-entry .lessonControls{
-      grid-template-columns: 1fr auto;
-      grid-template-areas: "count goal";
-    }
-    #studentTab-entry .lessonControls .countWrap{ grid-area: count; }
-    #studentTab-entry .lessonControls .goalWrap{ grid-area: goal; justify-self: start; }
+    #goalsPage .gp-header{ grid-template-columns: 1fr 1fr; }
+    #goalsPage .gp-actions .action{ grid-column: 1 / -1; }
+  }
+}
+</style>
+<!-- === /GOALS HEADER MOBILE PATCH === -->
+
+<!-- === GOALS TITLE UNDER MAIN SUBHEADER (MOBILE) === -->
+<style>
+@media (max-width: 600px){
+  /* Goals başlığını header altına taşıdığımızda gp-header içindekini gizle */
+  #goalsPage .gp-title{ display: none !important; }
+
+  /* Header altında yeni başlık görünümü */
+  .header .header-goals-title{
+    display: block;
+    margin-top: 6px;
+    font-weight: 800;
+    font-size: clamp(18px, 5vw, 22px);
+    line-height: 1.15;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
 </style>
 <script>
-// 1) Header başlığını subheader altına yerleştir (Goals görünürken)
 (function(){
   function ensureGoalsTitle(){
     try{
@@ -796,129 +792,37 @@ button.exitSmall .label{line-height:1}
       var sub = header && header.querySelector('.subheader');
       var srcTitle = document.querySelector('#goalsPage .gp-title');
       if(!header || !sub || !srcTitle) return;
-      var txt = (srcTitle.textContent||'').trim();
+
+      var txt = srcTitle.textContent.trim();
       var el = header.querySelector('.header-goals-title');
       if(!el){
         el = document.createElement('div');
         el.className = 'header-goals-title';
         sub.insertAdjacentElement('afterend', el);
       }
-      if((el.textContent||'').trim() !== txt){ el.textContent = txt; }
+      if(el.textContent.trim() !== txt){ el.textContent = txt; }
+
+      // Görünürlüğü sadece goals sayfası görünürken aç
       var gp = document.getElementById('goalsPage');
-      var gpVisible = gp && window.getComputedStyle(gp).display !== 'none';
-      el.style.display = gpVisible ? '' : 'none';
+      var isVisible = gp && gp.offsetParent !== null && window.getComputedStyle(gp).display !== 'none';
+      el.style.display = (isVisible ? '' : 'none');
     }catch(e){}
   }
-  document.addEventListener('DOMContentLoaded', function(){ setTimeout(ensureGoalsTitle, 50); });
+
+  // İlk çalıştırma
+  document.addEventListener('DOMContentLoaded', function(){
+    setTimeout(ensureGoalsTitle, 50);
+  });
+
+  // Sayfa görünürlüğü değiştiğinde de güncelle
   var mo = new MutationObserver(function(){ setTimeout(ensureGoalsTitle, 50); });
   mo.observe(document.documentElement, {subtree:true, attributes:true, childList:true, attributeFilter:['style','class']});
+
   window.addEventListener('resize', function(){ setTimeout(ensureGoalsTitle, 100); }, {passive:true});
   window.addEventListener('orientationchange', function(){ setTimeout(ensureGoalsTitle, 200); }, {passive:true});
 })();
-
-// 2) Öğretmen modal açılışında Weekly'i varsayılan yap ve Aylık öğelerini kaldır
-(function(){
-  if (typeof openReportModal === 'function'){
-    const __origOpen = openReportModal;
-    window.openReportModal = function(){
-      var ov = document.getElementById('reportOverlay');
-      var box = document.getElementById('teacherStudentDetail');
-      if(ov) ov.style.display='block';
-      if(box){ box.style.display='block'; }
-      try{ showReportTab('weekly'); }catch(_){}
-    };
-  }
-  document.addEventListener('DOMContentLoaded', function(){
-    try{
-      var btn = document.getElementById('repTabMonthlyBtn'); if(btn) btn.remove();
-      var pane = document.getElementById('repTab-monthly'); if(pane) pane.remove();
-    }catch(e){}
-  });
-})();
 </script>
-<!-- === /COMBINED PATCH === -->
-
-<!-- === STUDENT ENTRY MOBILE FIT (final pass) === -->
-<style>
-@media (max-width: 600px){
-  html, body{ overflow-x: hidden; }
-
-  /* Allow shrinking in nested elements */
-  #studentTab-entry, 
-  #studentTab-entry *{ box-sizing: border-box; min-width: 0; }
-
-  /* List spacing */
-  #studentTab-entry .lessonList.dense{ gap: 10px; }
-
-  /* Row: compact padding and wraps cleanly */
-  #studentTab-entry .lessonRow.dense{
-    padding: 8px 10px !important;
-    display: flex !important;
-    flex-wrap: wrap !important;
-    gap: 8px 10px;
-    align-items: center;
-  }
-
-  /* Chip + % badge line */
-  #studentTab-entry .lessonRow.dense .chip{
-    font-size: 13px;
-    max-width: 64vw;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  #studentTab-entry .lessonRow.dense .pctBadge{ margin-left: auto; }
-
-  /* Controls take full width on the second line */
-  #studentTab-entry .lessonRow.dense .lessonControls{
-    margin-left: 0 !important;
-    width: 100% !important;
-    display: flex !important;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* Count cluster: (-) [input] (+) */
-  #studentTab-entry .lessonRow.dense .countWrap{
-    display: flex; align-items: center; gap: 6px;
-    flex: 1 1 60%;
-    min-width: 0;
-  }
-  #studentTab-entry .lessonRow.dense .numBtn{
-    flex: 0 0 36px; width: 36px; height: 36px;
-  }
-  #studentTab-entry .lessonRow.dense input[type="number"]{
-    flex: 1 1 80px;
-    width: auto !important; min-width: 60px; max-width: 120px;
-    min-height: 40px; font-size: 16px;
-  }
-
-  /* Goal cluster: 🎯 [goalInput] */
-  #studentTab-entry .lessonRow.dense .goalWrap{
-    display: flex; align-items: center; gap: 6px;
-    flex: 1 1 40%;
-    justify-content: flex-end;
-    min-width: 0;
-  }
-  #studentTab-entry .lessonRow.dense .goalInput{
-    width: clamp(56px, 22vw, 92px) !important;
-    min-height: 40px; font-size: 16px;
-  }
-
-  /* Ultra narrow phones */
-  @media (max-width: 360px){
-    #studentTab-entry .lessonRow.dense .lessonControls{
-      flex-direction: column; align-items: stretch; gap: 6px;
-    }
-    #studentTab-entry .lessonRow.dense .countWrap{
-      width: 100%; justify-content: space-between;
-    }
-    #studentTab-entry .lessonRow.dense .goalWrap{
-      width: 100%; justify-content: space-between;
-    }
-  }
-}
-</style>
-<!-- === /STUDENT ENTRY MOBILE FIT === -->
+<!-- === /GOALS TITLE UNDER MAIN SUBHEADER (MOBILE) === -->
 </head>
 <style>
 /* ===== Ders Hedefleri (Goals Page) — Modern görünüm ===== */

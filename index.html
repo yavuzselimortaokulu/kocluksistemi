@@ -838,62 +838,87 @@ button.exitSmall .label{line-height:1}
 </script>
 <!-- === /COMBINED PATCH === -->
 
-<!-- === STUDENT ENTRY MOBILE FIX v2 (no overlap) === -->
+<!-- === STUDENT ENTRY MOBILE FIT (final pass) === -->
 <style>
 @media (max-width: 600px){
-  /* Toolbar wrap */
-  #studentTab-entry .student-toolbar{
-    display:flex; flex-wrap: wrap; gap: 8px 10px;
+  html, body{ overflow-x: hidden; }
+
+  /* Allow shrinking in nested elements */
+  #studentTab-entry, 
+  #studentTab-entry *{ box-sizing: border-box; min-width: 0; }
+
+  /* List spacing */
+  #studentTab-entry .lessonList.dense{ gap: 10px; }
+
+  /* Row: compact padding and wraps cleanly */
+  #studentTab-entry .lessonRow.dense{
+    padding: 8px 10px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px 10px;
+    align-items: center;
   }
 
-  /* Row uses wrap; controls drop to full width */
-  .lessonRow.dense{
-    display:flex !important; flex-wrap: wrap !important; gap: 8px 10px;
+  /* Chip + % badge line */
+  #studentTab-entry .lessonRow.dense .chip{
+    font-size: 13px;
+    max-width: 64vw;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
-  .lessonRow.dense .chip{
-    max-width: 68vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  }
-  .lessonRow.dense .pctBadge{ margin-left:auto; }
+  #studentTab-entry .lessonRow.dense .pctBadge{ margin-left: auto; }
 
-  .lessonRow.dense .lessonControls{
+  /* Controls take full width on the second line */
+  #studentTab-entry .lessonRow.dense .lessonControls{
     margin-left: 0 !important;
     width: 100% !important;
-    display:flex !important;
+    display: flex !important;
     flex-wrap: wrap;
     align-items: center;
     gap: 8px;
   }
-  .lessonRow.dense .numBtn{ flex: 0 0 34px; }
 
-  .lessonRow.dense .countWrap{
-    display:flex; align-items:center; gap:6px;
-    flex: 1 1 58%;
-    min-width: 220px;
+  /* Count cluster: (-) [input] (+) */
+  #studentTab-entry .lessonRow.dense .countWrap{
+    display: flex; align-items: center; gap: 6px;
+    flex: 1 1 60%;
+    min-width: 0;
   }
-  .lessonRow.dense input[type="number"]{
-    width: clamp(64px, 26vw, 92px) !important;
-    min-height: 42px; font-size: 16px;
+  #studentTab-entry .lessonRow.dense .numBtn{
+    flex: 0 0 36px; width: 36px; height: 36px;
+  }
+  #studentTab-entry .lessonRow.dense input[type="number"]{
+    flex: 1 1 80px;
+    width: auto !important; min-width: 60px; max-width: 120px;
+    min-height: 40px; font-size: 16px;
   }
 
-  .lessonRow.dense .goalWrap{
-    display:flex; align-items:center; gap:6px;
-    flex: 1 1 38%;
+  /* Goal cluster: 🎯 [goalInput] */
+  #studentTab-entry .lessonRow.dense .goalWrap{
+    display: flex; align-items: center; gap: 6px;
+    flex: 1 1 40%;
     justify-content: flex-end;
+    min-width: 0;
   }
-  .lessonRow.dense .goalInput{
-    width: clamp(56px, 20vw, 84px) !important;
-    min-height: 42px; font-size: 16px;
+  #studentTab-entry .lessonRow.dense .goalInput{
+    width: clamp(56px, 22vw, 92px) !important;
+    min-height: 40px; font-size: 16px;
   }
 
-  /* Ultra narrow phones: stack goal below count */
+  /* Ultra narrow phones */
   @media (max-width: 360px){
-    .lessonRow.dense .lessonControls{ flex-direction: column; align-items: stretch; gap: 6px; }
-    .lessonRow.dense .countWrap{ min-width: 0; width: 100%; justify-content: space-between; }
-    .lessonRow.dense .goalWrap{ width: 100%; justify-content: space-between; }
+    #studentTab-entry .lessonRow.dense .lessonControls{
+      flex-direction: column; align-items: stretch; gap: 6px;
+    }
+    #studentTab-entry .lessonRow.dense .countWrap{
+      width: 100%; justify-content: space-between;
+    }
+    #studentTab-entry .lessonRow.dense .goalWrap{
+      width: 100%; justify-content: space-between;
+    }
   }
 }
 </style>
-<!-- === /STUDENT ENTRY MOBILE FIX v2 === -->
+<!-- === /STUDENT ENTRY MOBILE FIT === -->
 </head>
 <style>
 /* ===== Ders Hedefleri (Goals Page) — Modern görünüm ===== */

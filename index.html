@@ -1025,20 +1025,6 @@ button.exitSmall .label{line-height:1}
 }
 </style>
 
-
-<style>
-@media (max-width: 420px){
-  /* Weekly header cells: force single line and tighter padding */
-  #studentTab-week thead th,
-  #stuWeekMatrix thead th,
-  #weekMatrix thead th{
-    white-space: nowrap !important;
-    word-break: keep-all !important;
-    padding: 4px 6px !important;
-  }
-}
-</style>
-
 </head>
 <style>
 /* ===== Ders Hedefleri (Goals Page) — Modern görünüm ===== */
@@ -3948,72 +3934,6 @@ document.addEventListener('DOMContentLoaded', function(){
   ['studentTab-week','stuWeekMatrix','weekMatrix'].forEach(function(id){
     var el=document.getElementById(id); if(!el) return;
     var mo = new MutationObserver(function(){ run(); });
-    mo.observe(el,{childList:true,subtree:true,characterData:true});
-  });
-})();
-</script>
-
-
-<script>
-/* === Weekly header: 'Ders' -> 'Drs' + day headers single-line autoshrink === */
-(function(){
-  var SMALL_W = 420;
-  function isSmall(){ return (window.innerWidth || document.documentElement.clientWidth) <= SMALL_W; }
-  var DAY_ABBR_F = { "pazartesi":"Pzt","salı":"Sal","sali":"Sal","çarşamba":"Çar","carsamba":"Çar","perşembe":"Per","persembe":"Per","cuma":"Cum","cumartesi":"Cmt","pazar":"Paz" };
-  function lowerTR(s){ try{ return (s||"").toLocaleLowerCase('tr'); }catch(_){ return (s||"").toLowerCase(); } }
-
-  function fits(el){ return !el ? true : (el.scrollWidth <= el.clientWidth + 1); }
-  function autoshrinkSingleLine(cell, minPx){
-    if(!cell) return;
-    cell.style.whiteSpace = 'nowrap'; cell.style.wordBreak = 'keep-all';
-    // tighter line-height helps avoid wrap due to height rounding
-    cell.style.lineHeight = '1.05';
-    try{
-      var style = window.getComputedStyle(cell);
-      var cur = parseFloat(style.fontSize || "14");
-      var min = Math.max(8, minPx||8);
-      var guard = 28;
-      while (!fits(cell) && cur > min && guard-- > 0){
-        cur -= 0.5;
-        cell.style.fontSize = cur + "px";
-      }
-    }catch(_){}
-  }
-
-  function applyWeeklyHeaderFix(scope){
-    var tbl = scope.querySelector('table'); if(!tbl) return;
-    var thead = tbl.tHead;
-    if(!thead) return;
-    // adjust first header to Drs
-    var first = thead.rows[0] && thead.rows[0].cells[0];
-    if(first && /ders/i.test(first.textContent.trim())){
-      first.textContent = 'Drs';
-      autoshrinkSingleLine(first, 8);
-    }
-    // normalize all day headers to abbreviations & single line
-    Array.from(thead.rows).forEach(function(row){
-      Array.from(row.cells).forEach(function(cell, idx){
-        if(idx === 0) return; // skip first header
-        var txt = cell.textContent.trim();
-        var key = lowerTR(txt);
-        if(DAY_ABBR_F[key]) cell.textContent = DAY_ABBR_F[key];
-        autoshrinkSingleLine(cell, 8);
-      });
-    });
-  }
-
-  function run(){
-    if(!isSmall()) return;
-    ['#studentTab-week', '#stuWeekMatrix', '#weekMatrix'].forEach(function(sel){
-      var scope = document.querySelector(sel);
-      if(scope) applyWeeklyHeaderFix(scope);
-    });
-  }
-  if (document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', run); } else { run(); }
-  var to=null; window.addEventListener('resize', function(){ clearTimeout(to); to=setTimeout(run, 120); });
-  ['studentTab-week','stuWeekMatrix','weekMatrix'].forEach(function(id){
-    var el=document.getElementById(id); if(!el) return;
-    var mo=new MutationObserver(function(){ run(); });
     mo.observe(el,{childList:true,subtree:true,characterData:true});
   });
 })();

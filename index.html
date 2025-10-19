@@ -722,49 +722,283 @@ button.exitSmall .label{line-height:1}
 }
 </style>
 
-<style id="mobile-fixes-2025-10">
-/* === MOBILE/PORTRAIT OPTIMIZATION PACK — 2025-10-06 === */
-:root { --tap-min: 44px; }
-
-/* Make all media responsive by default */
-img, svg, canvas, video { max-width: 100%; height: auto; }
-img { display: block; }
-canvas { display:block; width:100% !important; height:auto !important; }
-
-/* Tables: horizontal scroll on small screens */
-@media (max-width: 768px) {
-  .container { padding: 16px; }
-  .classGrid { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
-  .tabs, .pillTabs { flex-wrap: wrap; position: sticky; top: 0; z-index: 30; }
-  table { display:block; overflow-x:auto; white-space:nowrap; -webkit-overflow-scrolling:touch; }
-  th, td { white-space:nowrap; }
+<!-- === COMBINED PATCH: header title under subheader, remove monthly, hide 'Göster', student entry mobile === -->
+<style>
+/* 1) Header: Goals başlığını her boyutta subheader altına taşı (Goals içindekini gizle) */
+#goalsPage .gp-title{ display: none !important; }
+.header .header-goals-title{
+  display: block; margin-top: 6px; font-weight: 800;
+  font-size: clamp(18px, 2.2vw, 24px); line-height: 1.15; text-align: center;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-@media (max-width: 560px) {
-  .row { flex-wrap: wrap; }
-  .studentItem.hasDel { padding-right:56px; }
-  .delFloat, .delStuFloat, .targetFloat { width: var(--tap-min); height: var(--tap-min); }
-}
+/* 2) Öğretmen modal: Aylık sekmesini kaldır */
+#teacherStudentDetail #repTabMonthlyBtn,
+#teacherStudentDetail #repTab-monthly{ display:none !important; }
 
-/* Portrait (dikey) adjustments */
-@media (orientation: portrait) {
-  body { padding-bottom: max(env(safe-area-inset-bottom), 12px); }
-  #teacherStudentDetail.asModal { max-height: 86vh; }
-}
+/* 3) Favoriler: 'Göster' butonunu gizle */
+#favoritesSection .editBtn{ display: none !important; }
 
-/* Icon visibility fix (iOS Safari & some Android WebViews) */
-.delFloat img.trashIcon, .delStuFloat img.trashIcon {
-  width: 22px !important; height: 22px !important;
-  display: block; image-rendering: auto;
-  filter: none !important; -webkit-filter: none !important;
-  opacity: 1 !important;
-}
-.delFloat, .delStuFloat { z-index: 5; }
+/* 4) Öğrenci soru giriş (student entry) mobil düzen */
+@media (max-width: 600px){
+  #studentTab-entry input[type="number"],
+  #studentTab-entry .goalInput{ min-height: 40px; font-size: 16px; }
 
-/* Ensure role icons scale nicely */
-.roleIcon svg { width: 100%; height: 100%; display:block; }
+  #studentTab-entry .lessonRow.dense{
+    display: grid !important;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "chip pct"
+      "controls controls";
+    gap: 8px 10px;
+    align-items: center;
+  }
+  #studentTab-entry .lessonRow.dense .chip{ grid-area: chip; font-size: 14px; }
+  #studentTab-entry .lessonRow.dense .pctBadge{ grid-area: pct; justify-self: end; }
+
+  #studentTab-entry .lessonControls{
+    grid-area: controls;
+    margin-left: 0;
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+  }
+  #studentTab-entry .lessonControls .countWrap{
+    display: grid; grid-template-columns: auto 1fr auto; gap: 6px; align-items:center;
+  }
+  #studentTab-entry .lessonControls input[type="number"]{ width: 88px; }
+
+  #studentTab-entry .goalWrap{
+    display:grid; grid-template-columns:auto 1fr; gap:6px; align-items:center; justify-self:end;
+  }
+  #studentTab-entry .goalWrap .goalIcon{ line-height:1; }
+  #studentTab-entry .goalInput{ max-width: 96px; }
+
+  /* Çok dar cihazlar */
+  @media (max-width: 360px){
+    #studentTab-entry .lessonControls{
+      grid-template-columns: 1fr auto;
+      grid-template-areas: "count goal";
+    }
+    #studentTab-entry .lessonControls .countWrap{ grid-area: count; }
+    #studentTab-entry .lessonControls .goalWrap{ grid-area: goal; justify-self: start; }
+  }
+}
 </style>
+<script>
+// 1) Header başlığını subheader altına yerleştir (Goals görünürken)
+(function(){
+  function ensureGoalsTitle(){
+    try{
+      var header = document.querySelector('.header');
+      var sub = header && header.querySelector('.subheader');
+      var srcTitle = document.querySelector('#goalsPage .gp-title');
+      if(!header || !sub || !srcTitle) return;
+      var txt = (srcTitle.textContent||'').trim();
+      var el = header.querySelector('.header-goals-title');
+      if(!el){
+        el = document.createElement('div');
+        el.className = 'header-goals-title';
+        sub.insertAdjacentElement('afterend', el);
+      }
+      if((el.textContent||'').trim() !== txt){ el.textContent = txt; }
+      var gp = document.getElementById('goalsPage');
+      var gpVisible = gp && window.getComputedStyle(gp).display !== 'none';
+      el.style.display = gpVisible ? '' : 'none';
+    }catch(e){}
+  }
+  document.addEventListener('DOMContentLoaded', function(){ setTimeout(ensureGoalsTitle, 50); });
+  var mo = new MutationObserver(function(){ setTimeout(ensureGoalsTitle, 50); });
+  mo.observe(document.documentElement, {subtree:true, attributes:true, childList:true, attributeFilter:['style','class']});
+  window.addEventListener('resize', function(){ setTimeout(ensureGoalsTitle, 100); }, {passive:true});
+  window.addEventListener('orientationchange', function(){ setTimeout(ensureGoalsTitle, 200); }, {passive:true});
+})();
 
+// 2) Öğretmen modal açılışında Weekly'i varsayılan yap ve Aylık öğelerini kaldır
+(function(){
+  if (typeof openReportModal === 'function'){
+    const __origOpen = openReportModal;
+    window.openReportModal = function(){
+      var ov = document.getElementById('reportOverlay');
+      var box = document.getElementById('teacherStudentDetail');
+      if(ov) ov.style.display='block';
+      if(box){ box.style.display='block'; }
+      try{ showReportTab('weekly'); }catch(_){}
+    };
+  }
+  document.addEventListener('DOMContentLoaded', function(){
+    try{
+      var btn = document.getElementById('repTabMonthlyBtn'); if(btn) btn.remove();
+      var pane = document.getElementById('repTab-monthly'); if(pane) pane.remove();
+    }catch(e){}
+  });
+})();
+</script>
+<!-- === /COMBINED PATCH === -->
+
+<!-- === STUDENT ENTRY MOBILE FIT (final pass) === -->
+<style>
+@media (max-width: 600px){
+  html, body{ overflow-x: hidden; }
+
+  /* Allow shrinking in nested elements */
+  #studentTab-entry, 
+  #studentTab-entry *{ box-sizing: border-box; min-width: 0; }
+
+  /* List spacing */
+  #studentTab-entry .lessonList.dense{ gap: 10px; }
+
+  /* Row: compact padding and wraps cleanly */
+  #studentTab-entry .lessonRow.dense{
+    padding: 8px 10px !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 8px 10px;
+    align-items: center;
+  }
+
+  /* Chip + % badge line */
+  #studentTab-entry .lessonRow.dense .chip{
+    font-size: 13px;
+    max-width: 64vw;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  #studentTab-entry .lessonRow.dense .pctBadge{ margin-left: auto; }
+
+  /* Controls take full width on the second line */
+  #studentTab-entry .lessonRow.dense .lessonControls{
+    margin-left: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Count cluster: (-) [input] (+) */
+  #studentTab-entry .lessonRow.dense .countWrap{
+    display: flex; align-items: center; gap: 6px;
+    flex: 1 1 60%;
+    min-width: 0;
+  }
+  #studentTab-entry .lessonRow.dense .numBtn{
+    flex: 0 0 36px; width: 36px; height: 36px;
+  }
+  #studentTab-entry .lessonRow.dense input[type="number"]{
+    flex: 1 1 80px;
+    width: auto !important; min-width: 60px; max-width: 120px;
+    min-height: 40px; font-size: 16px;
+  }
+
+  /* Goal cluster: 🎯 [goalInput] */
+  #studentTab-entry .lessonRow.dense .goalWrap{
+    display: flex; align-items: center; gap: 6px;
+    flex: 1 1 40%;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+  #studentTab-entry .lessonRow.dense .goalInput{
+    width: clamp(56px, 22vw, 92px) !important;
+    min-height: 40px; font-size: 16px;
+  }
+
+  /* Ultra narrow phones */
+  @media (max-width: 360px){
+    #studentTab-entry .lessonRow.dense .lessonControls{
+      flex-direction: column; align-items: stretch; gap: 6px;
+    }
+    #studentTab-entry .lessonRow.dense .countWrap{
+      width: 100%; justify-content: space-between;
+    }
+    #studentTab-entry .lessonRow.dense .goalWrap{
+      width: 100%; justify-content: space-between;
+    }
+  }
+}
+
+/* === Beni Hatırla kutusu === */
+.rememberRow{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  margin:6px 0 12px; text-align:center;
+}
+.rememberRow input[type=checkbox]{
+  appearance:none; -webkit-appearance:none; -moz-appearance:none;
+  width:1.6em; height:1.6em; border-radius:4px;
+  border:1px solid var(--cardBorder);
+  background:var(--bg);
+  display:grid; place-items:center; cursor:pointer;
+  transition: box-shadow .12s ease, filter .12s ease, background .12s ease;
+}
+.rememberRow input[type=checkbox]::after{
+  content:"✔"; font-size:1.2em; line-height:1; color:#d1fae5;
+  opacity:0; transform:scale(.9); transition:opacity .12s ease;
+}
+.rememberRow input[type=checkbox]:checked{
+  background:linear-gradient(135deg, rgba(59,130,246,.15), rgba(6,182,212,.15));
+  box-shadow:0 0 0 2px rgba(16,185,129,.35) inset;
+}
+.rememberRow input[type=checkbox]:checked::after{ opacity:1; }
+.rememberRow label{ user-select:none; font-weight:700; opacity:.9; }
+
+/* (Buton için ek efektler kaldırıldı) */
+
+
+
+
+
+
+</style>
+<!-- === /STUDENT ENTRY MOBILE FIT === -->
+<style>
+
+/* === Beni Hatırla (yüksek özgüllük ve !important ile) === */
+#studentLogin .rememberRow{ display:flex; justify-content:center; align-items:center; gap:12px; margin:10px 0 14px; text-align:center; }
+#studentLogin .rememberRow input[type=checkbox]{
+  all: unset;
+  width:1.9rem !important; height:1.9rem !important;
+  display:inline-grid; place-items:center;
+  border:2px solid var(--accent1) !important;
+  border-radius:6px !important;
+  background:var(--bg) !important;
+  cursor:pointer; box-sizing:content-box !important;
+}
+#studentLogin .rememberRow input[type=checkbox]::after{
+  content:"✔"; font-size:1.25rem; line-height:1; color:#d1fae5;
+  opacity:0; transform:scale(.9); transition:opacity .12s ease;
+}
+#studentLogin .rememberRow input[type=checkbox]:checked{
+  background:linear-gradient(135deg, rgba(59,130,246,.15), rgba(6,182,212,.15)) !important;
+  box-shadow:0 0 0 2px rgba(16,185,129,.35) inset !important;
+}
+#studentLogin .rememberRow input[type=checkbox]:checked::after{ opacity:1; }
+#studentLogin .rememberRow label{ user-select:none; font-weight:700; opacity:.95; }
+
+</style>
+<style>
+/* === Öğretmen Giriş Beni Hatırla (yüksek özgüllük) === */
+#teacherLogin .rememberRow{ display:flex; justify-content:center; align-items:center; gap:12px; margin:10px 0 14px; text-align:center; }
+#teacherLogin .rememberRow input[type=checkbox]{
+  all: unset;
+  width:1.9rem !important; height:1.9rem !important;
+  display:inline-grid; place-items:center;
+  border:2px solid var(--accent1) !important;
+  border-radius:6px !important;
+  background:var(--bg) !important;
+  cursor:pointer; box-sizing:content-box !important;
+}
+#teacherLogin .rememberRow input[type=checkbox]::after{
+  content:"✔"; font-size:1.25rem; line-height:1; color:#d1fae5;
+  opacity:0; transform:scale(.9); transition:opacity .12s ease;
+}
+#teacherLogin .rememberRow input[type=checkbox]:checked{
+  background:linear-gradient(135deg, rgba(59,130,246,.15), rgba(6,182,212,.15)) !important;
+  box-shadow:0 0 0 2px rgba(16,185,129,.35) inset !important;
+}
+#teacherLogin .rememberRow input[type=checkbox]:checked::after{ opacity:1; }
+#teacherLogin .rememberRow label{ user-select:none; font-weight:700; opacity:.95; }
+</style>
 </head>
 <style>
 /* ===== Ders Hedefleri (Goals Page) — Modern görünüm ===== */
@@ -870,7 +1104,12 @@ canvas { display:block; width:100% !important; height:auto !important; }
 <h3>Öğrenci-Veli Giriş</h3>
 <input autocomplete="off" id="lNumber" placeholder="Okul Numarası" type="text"/>
 <input autocomplete="current-password" id="lPass" placeholder="Şifre" type="password"/>
-<button class="action" onclick="studentLogin()" type="button">Giriş Yap</button>
+
+  <div class="rememberRow">
+    <input id="rememberMe" type="checkbox"/>
+    <label for="rememberMe">Beni hatırla</label>
+  </div>
+  <button class="action" onclick="studentLogin()" type="button">Giriş Yap</button>
 </div>
 <!-- Giriş Türü Seçimi -->
 <div class="container" id="roleChoice" style="display:none">
@@ -905,14 +1144,25 @@ canvas { display:block; width:100% !important; height:auto !important; }
 <h3>Öğretmen Giriş</h3>
 <input autocomplete="name" id="tName" placeholder="Ad Soyad" type="text"/>
 <input id="tCode" placeholder="Kod" type="password"/>
-<button class="action" onclick="teacherLogin()" type="button">Giriş Yap</button>
+
+  <div class="rememberRow">
+    <input id="rememberMeTeacher" type="checkbox"/>
+    <label for="rememberMeTeacher">Beni hatırla</label>
+  </div>
+  <button class="action" onclick="teacherLogin()" type="button">Giriş Yap</button>
 </div>
 </div>
 <!-- ÖĞRENCİ PANELİ -->
 <div class="container" id="studentPanel" style="display:none">
-<h3>Öğrenci Paneli</h3>
+<h3 id="studentPanelTitle">Öğrenci Paneli</h3>
 <div class="studentWelcomeBanner" id="studentWelcome" style="display:none"></div>
 <div class="pillTabs" id="studentTabs">
+<button id="btnBackTabs" class="btn-back" type="button" title="Geri" aria-label="Geri" onclick="openRoleChoiceFromStudent()">
+  <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <path d="M15 19l-7-7 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+
 <button class="pill active" id="stuTabEntryBtn" onclick="showStudentTab('entry')">Soru Girişi</button>
 <button class="pill" id="stuTabWeekBtn" onclick="showStudentTab('week')">Haftalık Rapor</button>
 <button class="pill" id="stuTabMonthBtn" onclick="showStudentTab('month')">Aylık Rapor</button>
@@ -920,7 +1170,7 @@ canvas { display:block; width:100% !important; height:auto !important; }
 <div id="studentTab-entry">
 <div class="student-toolbar">
 <div style="display:flex; gap:8px; align-items:center;">
-<strong>Öğrenci Paneli</strong>
+<strong id="studentPanelToolbarTitle">Öğrenci Paneli</strong>
 <span class="chip"><span class="dot" style="background:transparent;border:1px solid var(--cardBorder)"></span>Liste v5.4</span>
 </div>
 <div style="display:flex; gap:8px;">
@@ -1406,6 +1656,7 @@ function openTargetForCurrent(){
     function studentLogin(){
       const num=document.getElementById("lNumber").value.trim();
       const pass=document.getElementById("lPass").value;
+      try{const cb=document.getElementById('rememberMe'); if(cb&&cb.checked){localStorage.setItem('savedNum', num);}else{localStorage.removeItem('savedNum');}}catch(_){}
       db.ref("students/"+num).get().then(snap=>{
         if(snap.exists() && snap.val().pass===pass){
           currentStudent = num;
@@ -1471,6 +1722,7 @@ function openTargetForCurrent(){
     }
 
     function logout(){
+      var wasTeacherCtx = !!(currentTeacherId);
       const rc=document.getElementById('roleChoice'); if(rc) rc.style.display='none';
       if(classesRef){ classesRef.off(); classesRef=null; }
       if(favRef){ favRef.off(); favRef=null; }
@@ -3092,35 +3344,563 @@ body[data-role="parent"] #studentTab-entry .student-toolbar { margin-bottom: 8px
   window.applyRoleUi();
 })();
 </script>
+<script>
 
-<script id="mobile-fixes-2025-10-js">
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    const saved = localStorage.getItem('savedNum');
+    const numEl = document.getElementById('lNumber');
+    const cb = document.getElementById('rememberMe');
+    if(saved && numEl){ numEl.value = saved; if(cb) cb.checked = true; }
+  }catch(_){}
+});
+
+</script>
+
+<script>
+// === Beni Hatırla Mantığı (Numara + Şifre) ===
 (function(){
-  function enhanceImages(){
-    document.querySelectorAll('img').forEach(function(img){
-      if(!img.getAttribute('loading')) img.setAttribute('loading','lazy');
-      img.setAttribute('decoding','async');
-      img.style.maxWidth = '100%';
-      img.style.height = 'auto';
-    });
-  }
-  function fixCanvases(){
+  const numId = 'lNumber';
+  const passId = 'lPass';
+  const cbId = 'rememberMe';
+  const KEY_NUM = 'savedNum';
+  const KEY_PASS = 'savedPass';
+
+  function byId(id){ return document.getElementById(id); }
+
+  function loadSaved(){
     try{
-      var list = Array.from(document.querySelectorAll('canvas'));
-      list.forEach(function(c){ c.style.width='100%'; c.style.height='auto'; });
-      if(window.stuWeekChart && typeof stuWeekChart.resize==='function') stuWeekChart.resize();
-      if(window.stuMonthChart && typeof stuMonthChart.resize==='function') stuMonthChart.resize();
-      if(window.weekChart && typeof weekChart.resize==='function') weekChart.resize();
-      if(window._exportChart && typeof _exportChart.resize==='function') _exportChart.resize();
+      const n = localStorage.getItem(KEY_NUM);
+      const p = localStorage.getItem(KEY_PASS);
+      const numEl = byId(numId);
+      const passEl = byId(passId);
+      const cb = byId(cbId);
+      if((n!==null || p!==null) && cb){
+        cb.checked = true;
+      }
+      if(n!==null && numEl){ numEl.value = n; }
+      if(p!==null && passEl){ passEl.value = p; }
     }catch(_){}
   }
+
+  function saveIfChecked(){
+    try{
+      const cb = byId(cbId);
+      if(cb && cb.checked){
+        const numEl = byId(numId);
+        const passEl = byId(passId);
+        if(numEl) localStorage.setItem(KEY_NUM, (numEl.value||'').trim());
+        if(passEl) localStorage.setItem(KEY_PASS, passEl.value||'');
+      }
+    }catch(_){}
+  }
+
+  function clearSaved(andFields){
+    try{
+      localStorage.removeItem(KEY_NUM);
+      localStorage.removeItem(KEY_PASS);
+      if(andFields){
+        const numEl = byId(numId);
+        const passEl = byId(passId);
+        if(numEl) numEl.value = '';
+        if(passEl) passEl.value = '';
+      }
+    }catch(_){}
+  }
+
   document.addEventListener('DOMContentLoaded', function(){
-    enhanceImages();
-    fixCanvases();
+    // İlk yüklemede localStorage'dan doldur
+    loadSaved();
+
+    const cb = byId(cbId);
+    const numEl = byId(numId);
+    const passEl = byId(passId);
+
+    // Checkbox değişiminde kaydet/sil
+    if(cb){
+      cb.addEventListener('change', function(){
+        if(cb.checked){
+          saveIfChecked(); // anlık değerleri kaydet
+        }else{
+          clearSaved(true); // kayıtları ve alanları sil
+        }
+      });
+    }
+
+    // Kullanıcı yazarken, işaretli ise değerleri güncel tut
+    const sync = () => saveIfChecked();
+    if(numEl) numEl.addEventListener('input', sync);
+    if(passEl) passEl.addEventListener('input', sync);
   });
-  window.addEventListener('resize', fixCanvases, { passive: true });
-  window.addEventListener('orientationchange', fixCanvases);
+
+  // Giriş işleminde de, işaretli ise değerleri sakla; değilse sil
+  if(typeof studentLogin === 'function'){
+    const originalStudentLogin = studentLogin;
+    window.studentLogin = function(){
+      try{
+        const cb = document.getElementById(cbId);
+        if(cb && cb.checked){ saveIfChecked(); } else { clearSaved(false); }
+      }catch(_){}
+      return originalStudentLogin.apply(this, arguments);
+    }
+  }
+})();
+</script>
+
+
+<script>
+// === Beni Hatırla: showTab & logout entegrasyonu ===
+(function(){
+  const KEY_NUM = 'savedNum';
+  const KEY_PASS = 'savedPass';
+  function refill(){
+    try{
+      const n = localStorage.getItem(KEY_NUM);
+      const p = localStorage.getItem(KEY_PASS);
+      const numEl = document.getElementById('lNumber');
+      const passEl = document.getElementById('lPass');
+      const cb = document.getElementById('rememberMe');
+      if(n!==null || p!==null){
+        if(cb) cb.checked = true;
+      }
+      if(n!==null && numEl) numEl.value = n;
+      if(p!==null && passEl) passEl.value = p;
+    }catch(_){}
+  }
+
+  // showTab wrap: öğrenci giriş sekmesine dönünce alanları doldur
+  if(typeof window.showTab === 'function'){
+    const __orig_showTab = window.showTab;
+    window.showTab = function(tab){
+      const ret = __orig_showTab.apply(this, arguments);
+      if(tab === 'studentLogin'){ refill(); }
+      return ret;
+    };
+  }
+
+  // logout wrap: çıkış sonrası giriş sekmesi görünürken alanları doldur
+  if(typeof window.logout === 'function'){
+    const __orig_logout2 = window.logout;
+    window.logout = function(){
+      const ret = __orig_logout2.apply(this, arguments);
+      // showTab('studentLogin') çağrılmış oluyor; güvenli tarafta kalıp tekrar doldur
+      refill();
+      return ret;
+    };
+  }
+})();
+</script>
+
+
+<script>
+// === Öğretmen Giriş: Beni Hatırla (Ad Soyad + Kod) ===
+(function(){
+  const KEY_T_NAME = 'savedTName';
+  const KEY_T_CODE = 'savedTCode';
+  const idName = 'tName';
+  const idCode = 'tCode';
+  const idCb   = 'rememberMeTeacher';
+  function byId(id){ return document.getElementById(id); }
+
+  function loadSaved(){
+    try{
+      const n = localStorage.getItem(KEY_T_NAME);
+      const c = localStorage.getItem(KEY_T_CODE);
+      const cb = byId(idCb);
+      const nEl = byId(idName);
+      const cEl = byId(idCode);
+      if((n!==null || c!==null) && cb){ cb.checked = true; }
+      if(n!==null && nEl){ nEl.value = n; }
+      if(c!==null && cEl){ cEl.value = c; }
+    }catch(_){}
+  }
+  function saveIfChecked(){
+    try{
+      const cb = byId(idCb);
+      if(cb && cb.checked){
+        const nEl = byId(idName);
+        const cEl = byId(idCode);
+        if(nEl) localStorage.setItem(KEY_T_NAME, (nEl.value||'').trim());
+        if(cEl) localStorage.setItem(KEY_T_CODE, cEl.value||'');
+      }
+    }catch(_){}
+  }
+  function clearSaved(andFields){
+    try{
+      localStorage.removeItem(KEY_T_NAME);
+      localStorage.removeItem(KEY_T_CODE);
+      if(andFields){
+        const nEl = byId(idName);
+        const cEl = byId(idCode);
+        if(nEl) nEl.value='';
+        if(cEl) cEl.value='';
+      }
+    }catch(_){}
+  }
+
+  document.addEventListener('DOMContentLoaded', function(){
+    loadSaved();
+    const cb = byId(idCb);
+    const nEl = byId(idName);
+    const cEl = byId(idCode);
+    if(cb){
+      cb.addEventListener('change', function(){
+        if(cb.checked){ saveIfChecked(); } else { clearSaved(true); }
+      });
+    }
+    const sync = ()=> saveIfChecked();
+    if(nEl) nEl.addEventListener('input', sync);
+    if(cEl) cEl.addEventListener('input', sync);
+  });
+
+  // teacherLogin çağrıldığında da aynı kural
+  if(typeof window.teacherLogin === 'function'){
+    const __orig = window.teacherLogin;
+    window.teacherLogin = function(){
+      try{
+        const cb = byId(idCb);
+        if(cb && cb.checked){ saveIfChecked(); } else { clearSaved(false); }
+      }catch(_){}
+      return __orig.apply(this, arguments);
+    }
+  }
+
+  // showTab wrap -> teacherLogin sekmesine dönünce değerleri geri yaz
+  if(typeof window.showTab === 'function'){
+    const __orig_showTab = window.showTab;
+    window.showTab = function(tab){
+      const ret = __orig_showTab.apply(this, arguments);
+      if(tab === 'teacherLogin'){ loadSaved(); }
+      return ret;
+    };
+  }
+
+  // logout wrap -> çıkış sonrası teacherLogin için de alanları doldur
+  if(typeof window.logout === 'function'){
+    const __orig_logout = window.logout;
+    window.logout = function(){
+      const ret = __orig_logout.apply(this, arguments);
+      // showTab('studentLogin') çağrılsa da, kullanıcı öğretmen sekmesine geçerse kayıtlı veriler korunur.
+      loadSaved();
+      return ret;
+    };
+  }
+})();
+</script>
+
+
+<script>
+// === Öğretmen Çıkışı: Kırmızı buton -> teacherLogin sekmesine dön ===
+(function(){
+  if (typeof window.logout === 'function' && typeof window.showTab === 'function'){
+    const __orig_logout_final = window.logout;
+    window.logout = function(){
+      // Öğretmen bağlamında mı çıkılıyor? (orijinal fonksiyon currentTeacherId'yi sıfırlamadan önce yakala)
+      const wasTeacher = !!(window.currentTeacherId);
+      const ret = __orig_logout_final.apply(this, arguments);
+      // Öğretmense, studentLogin'e yönlendirilmiş olsa bile tekrar teacherLogin'e al.
+      if(wasTeacher){
+        try{ window.showTab('teacherLogin'); }catch(_){}
+      }
+      return ret;
+    };
+  }
+})();
+</script>
+
+
+<script>
+// === Öğretmen Çıkışı: Kesin yönlendirme (post-microtask) ===
+(function(){
+  // Click flag from teacher panel logout buttons
+  document.addEventListener('click', function(e){
+    var t = e.target;
+    if(!t) return;
+    if(t.matches && t.matches('#teacherPanel .logout, #teacherPanel .logout *')){
+      window.__logoutFromTeacher = true;
+    }
+  }, true);
+
+  if (typeof window.logout === 'function' && typeof window.showTab === 'function'){
+    const __orig_logout_final2 = window.logout;
+    window.logout = function(){
+      const wasTeacher = !!(window.currentTeacherId) || !!window.__logoutFromTeacher;
+      const ret = __orig_logout_final2.apply(this, arguments);
+      if(wasTeacher){
+        // Bir sonraki event döngüsünde çalıştır ki diğer yönlendirmelerin üstüne yazsın
+        setTimeout(function(){ try{ window.showTab('teacherLogin'); }catch(_){} }, 0);
+      }
+      // bayrağı temizle
+      window.__logoutFromTeacher = false;
+      return ret;
+    };
+  }
+})();
+</script>
+
+
+<script>
+// === Öğretmen Çıkışı: Kesin yönlendirme (showTab engelleyici + bayrak) ===
+(function(){
+  // showTab engelleyici: öğrenci sekmesine dönmek istenirse ve bayrak açıksa teacherLogin'e yönlendir
+  if (typeof window.showTab === 'function'){
+    const __orig_showTab_block = window.showTab;
+    window.showTab = function(tab){
+      if (window.__forceTeacherLogin && tab === 'studentLogin'){
+        // Bayrak bir defalık çalışır
+        window.__forceTeacherLogin = false;
+        tab = 'teacherLogin';
+      }
+      return __orig_showTab_block.apply(this, arguments.length ? [tab] : arguments);
+    };
+  }
+
+  if (typeof window.logout === 'function'){
+    const __orig_logout_block = window.logout;
+    window.logout = function(){
+      // Çıkışa basıldığı anki öğretmen durumu kaydedilir
+      var wasTeacherCtx = !!(window.currentTeacherId) || !!window.__logoutFromTeacher;
+      if (wasTeacherCtx){ window.__forceTeacherLogin = true; }
+      var ret = __orig_logout_block.apply(this, arguments);
+      if (wasTeacherCtx){
+        // Ek olarak güvenceye al
+        try{ window.showTab('teacherLogin'); }catch(e){}
+      }
+      window.__logoutFromTeacher = false;
+      return ret;
+    };
+  }
+})();
+</script>
+
+
+<script>
+// === Öğretmen Çıkışı: Öğretmen Giriş sayfasına kesin dönüş (role + tab senkron) ===
+(function(){
+  function activateTeacherLoginTab(){
+    try{
+      // Varsayılan sekme UI senkronu
+      document.querySelectorAll(".tabs button").forEach(b=>b.classList.remove("active"));
+      var btn = document.getElementById("tabTeacher");
+      if(btn){ btn.classList.add("active"); }
+    }catch(_){}
+    try{ window.applyRoleUi && window.applyRoleUi(); }catch(_){}
+    try{ window.showTab('teacherLogin'); }catch(_){}
+  }
+
+  if(typeof window.logout === 'function'){
+    const __orig_logout_hard = window.logout;
+    window.logout = function(){
+      // Öğretmenden çıkılıyor mu?
+      var wasTeacher = !!(window.currentTeacherId);
+      var ret = __orig_logout_hard.apply(this, arguments);
+      if(wasTeacher){
+        try{ window.activeRole = 'teacher'; }catch(_){}
+        // Öğrenci sekmesine yönlendirme yapan kodları yenmek için iki kademeli çağrı
+        activateTeacherLoginTab();
+        setTimeout(activateTeacherLoginTab, 0);
+      }
+      return ret;
+    };
+  }
+
+  // showTab engelleyici: öğrenci login'e çevirmeye çalışan çağrıları yakala
+  if (typeof window.showTab === 'function'){
+    const __orig_showTab_guard = window.showTab;
+    window.showTab = function(tab){
+      if(window.activeRole==='teacher' && tab==='studentLogin'){
+        tab = 'teacherLogin';
+      }
+      return __orig_showTab_guard.apply(this, arguments.length ? [tab] : arguments);
+    };
+  }
+})();
+</script>
+
+
+<script>
+// === Öğretmen Çıkışı (exitSmall dahil): Kesin öğretmen girişine dön ===
+(function(){
+  // 1) Tüm çıkış butonlarını yakala: .exitSmall (kırmızı), .logout ve aria-label="Çıkış"
+  document.addEventListener('click', function(ev){
+    var btn = ev.target && (ev.target.closest ? ev.target.closest('button') : null);
+    if(!btn) return;
+    var isLogoutBtn = btn.classList.contains('exitSmall') || btn.classList.contains('logout') ||
+                      (/çıkış/i.test(btn.getAttribute('aria-label')||''));
+    var inTeacherPanel = !!document.getElementById('teacherPanel') && 
+                         document.getElementById('teacherPanel').contains(btn);
+    if(isLogoutBtn && inTeacherPanel){
+      window.__logoutFromTeacher = true;
+    }
+  }, true);
+
+  // 2) showTab koruması: bayrak açıksa studentLogin isteklerini teacherLogin'e çevir
+  if (typeof window.showTab === 'function'){
+    const __orig_showTab_last = window.showTab;
+    window.showTab = function(tab){
+      if(window.__logoutFromTeacher && tab === 'studentLogin'){
+        tab = 'teacherLogin';
+      }
+      return __orig_showTab_last.apply(this, arguments.length ? [tab] : arguments);
+    };
+  }
+
+  // 3) logout sonrasında zorunlu yönlendirme
+  if (typeof window.logout === 'function'){
+    const __orig_logout_last = window.logout;
+    window.logout = function(){
+      var wasTeacher = window.__logoutFromTeacher || !!(window.currentTeacherId);
+      var ret = __orig_logout_last.apply(this, arguments);
+      if(wasTeacher){
+        // UI sekme durumunu da senkronla
+        try{
+          document.querySelectorAll('.tabs button').forEach(b=>b.classList.remove('active'));
+          var tb = document.getElementById('tabTeacher'); if(tb) tb.classList.add('active');
+        }catch(_){}
+        // En son aşamada teacherLogin'e dön
+        setTimeout(function(){ try{ window.showTab('teacherLogin'); }catch(_){} }, 0);
+      }
+      window.__logoutFromTeacher = false;
+      return ret;
+    };
+  }
 })();
 </script>
 
 </body>
 </html>
+
+<!-- ===== MOBILE REDE
+<style>
+/* Parent role: hide the small "Öğrenci Paneli" label row under tabs */
+body[data-role="parent"] #studentTab-entry .student-toolbar > div:first-child{
+  display: none !important;
+}
+</style>
+
+<!-- ===== RIGHT-ALIGNED RED BUTTON (FINAL) ===== -->
+<style>
+#studentTabs{ display:flex; align-items:center; gap:10px; }
+#studentTabs .pill{ order:0; }
+#btnBackTabs{ order:999 !important; margin-left:auto !important; flex:0 0 auto; }
+</style>
+
+<style>
+/* Right align the back button to the end of the tabs row */
+#studentTabs{ display:flex; align-items:center; gap:10px; }
+#btnBackTabs{ margin-left:auto; }
+@media (max-width: 640px){
+  #btnBackTabs{ width:38px; height:34px; }
+}
+</style>
+
+<script>
+function openRoleChoiceFromStudent(){
+  try{
+    const sp = document.getElementById('studentPanel');
+    const lp = document.getElementById('loginPanel');
+    const rc = document.getElementById('roleChoice');
+    if (sp) sp.style.display = 'none';
+    if (lp) lp.style.display = 'block';
+    // Hide the three login content blocks; show only the role choice
+    ['register','studentLogin','teacherLogin'].forEach(function(id){
+      var el = document.getElementById(id);
+      if(el) el.style.display = 'none';
+    });
+    if (rc) rc.style.display = 'block';
+    window.scrollTo({top: 0, behavior: 'smooth'});
+  }catch(e){
+    // fallback: just go back
+    history.back();
+  }
+}
+</script>
+
+<!-- ===== BACK BUTTON + GOAL ICON DISABLE (Student Entry) ===== -->
+<style>
+/* Tabs layout allows a leading back button */
+#studentTabs{ display:flex; align-items:center; gap:10px; }
+/* Red back button */
+#btnBackTabs.btn-back{
+  display:inline-flex; align-items:center; justify-content:center;
+  width: 40px; height: 34px;
+  border:0; border-radius:10px;
+  background: linear-gradient(180deg,#ef4444,#dc2626);
+  color:#fff; cursor:pointer;
+  box-shadow: 0 8px 16px rgba(220,38,38,.35);
+  transition: transform .08s ease, box-shadow .12s ease;
+}
+#btnBackTabs.btn-back:hover{ transform: translateY(-1px); box-shadow: 0 12px 24px rgba(220,38,38,.4); }
+#btnBackTabs.btn-back:active{ transform: translateY(0); }
+
+/* Student tab: goal icons are decorative only */
+#studentTab-entry .goalIcon{ cursor: default; opacity:.95; }
+#studentTab-entry .goalIcon, 
+#studentTab-entry .goalWrap{
+  -webkit-tap-highlight-color: transparent;
+}
+</style>
+<!-- ===== /BACK BUTTON + GOAL ICON DISABLE ===== -->
+
+<script>
+function goBackTabs(){ window.history.back(); }
+
+// Disable opening target modal from goal icons in STUDENT entry tab only
+document.addEventListener('DOMContentLoaded', function(){
+  // Intercept any click on goalIcon or goalWrap and stop it
+  document.querySelectorAll('#studentTab-entry .goalIcon, #studentTab-entry .goalWrap').forEach(function(el){
+    el.addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      return false;
+    }, true);
+  });
+  // Ensure goal input is editable in-table
+  document.querySelectorAll('#studentTab-entry .goalInput').forEach(function(inp){
+    inp.removeAttribute('readonly');
+    inp.disabled = false;
+  });
+});
+</script>
+
+<!-- ===== ALIGNMENT RESTORE (UL reset + safe card padding) ===== -->
+<style>
+/* Remove browser default indent from the lesson list so rows align with the title */
+#studentPanel ul.lessonList{
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  list-style: none !important;
+  padding-inline-start: 0 !important;
+  padding-inline-end: 0 !important;
+  margin-inline-start: 0 !important;
+  margin-inline-end: 0 !important;
+}
+
+/* Ensure rows stay within container without negative margins */
+#studentTab-entry .lessonRow.dense{
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Keep desktop spacing consistent */
+@media (min-width: 641px){
+  #studentTab-entry .lessonRow.dense{
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+    border-radius: 14px !important;
+  }
+}
+
+/* Keep phone spacing tidy */
+@media (max-width: 640px){
+  #studentTab-entry .lessonRow.dense{
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}
+</style>
+<!-- ===== /ALIGNMENT RESTORE ===== -->
+
+<!-- ===== MOB

@@ -1025,6 +1025,21 @@ button.exitSmall .label{line-height:1}
 }
 </style>
 
+
+<style id="fav-right-align-patch">
+/* === Favorilerim: yıldız (★) ve hedef (🎯) ikonlarını sağ tarafa hizala === */
+#favoritesSection .studentItem .leftGroup{ flex:1; }
+#favoritesSection .studentItem .leftGroup .studentNameBtn{ flex:0 1 auto; }
+#favoritesSection .studentItem .starBtn{ margin-left:auto; }  /* adı ve sınıfından sonra tüm boşluğu al */
+#favoritesSection .studentItem .targetBtn{ margin-left:8px; } /* yıldızın sağına yakın dursun */
+
+/* Dikey hizalama ve dar ekran uyumu */
+#favoritesSection .studentItem .starBtn,
+#favoritesSection .studentItem .targetBtn{
+  display:inline-flex; align-items:center; justify-content:center;
+}
+</style>
+
 </head>
 <style>
 /* ===== Ders Hedefleri (Goals Page) — Modern görünüm ===== */

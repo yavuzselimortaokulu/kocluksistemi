@@ -4260,22 +4260,7 @@ document.addEventListener('DOMContentLoaded', function(){
 (function(){
 
   // Türkçe ayrılma hali (ablative) ekleyen yardımcı: "Emre Demirbaş’tan"
-  function trAblativeSuffix(name){
-  // TDK: -(d/t)(a/e)n  -> 'dan/'den/'tan/'ten  (ASCII apostrophe)
-  var n = (name||"").trim();
-  if(!n) return "'dan";
-  // Keep only letters to detect last letter & last vowel
-  var letters = n.replace(/[^A-Za-zÇĞİÖŞÜçğıöşü]/g, "");
-  if(!letters) return "'dan";
-  var lastChar = letters.slice(-1).toLowerCase();
-  var vowelsAll = letters.match(/[aeıioöuü]/gi) || [];
-  var lastVowel = vowelsAll.length ? vowelsAll[vowelsAll.length-1].toLowerCase() : 'a';
-  var unvoiced = "fstkçşhp"; // sert ünsüzler
-  var cons = unvoiced.indexOf(lastChar) >= 0 ? 't' : 'd';
-  var back = "aıou";
-  var vow = back.indexOf(lastVowel) >= 0 ? 'a' : 'e';
-  return "'" + cons + (vow==='a' ? 'an' : 'en');
-}function deriveTeacherName(){
+function deriveTeacherName(){
     var n = (window.currentTeacherName||"").trim();
     if(!n){
       try{
@@ -4389,25 +4374,13 @@ document.addEventListener('DOMContentLoaded', function(){
       if(!snap || !snap.exists()) return;
       var data = snap.val() || {};
       if(!data || !data.msg) return;
-      
-  function trAblativeSuffix(name){
-    var n=(name||"").trim();
-    if(!n) return "’dan";
-    var letters = n.replace(/[^A-Za-zÇĞİÖŞÜçğıöşü]/g, "");
-    var last = letters ? letters.slice(-1) : 'n';
-    var vowels = "aıoueiöüAIOUEİÖÜ";
-    var back = "aıouAIOU";
-    var isVowel = vowels.indexOf(last) !== -1;
-    var cons = isVowel ? 'n' : last.toLowerCase();
-    var vow = back.indexOf(last) !== -1 ? 'a' : 'e';
-    return "’" + cons + (vow==='a' ? 'an' : 'en');
-  }
+
 
       var ov = document.getElementById("studentMsgOverlay");
       var fromEl = document.getElementById("studentMsgFrom");
       var mEl = document.getElementById("studentMsgContent");
       var teacherName = (data.teacher || (typeof deriveTeacherName==='function'? deriveTeacherName() : 'Öğretmen'));
-      var intro = teacherName + trAblativeSuffix(teacherName) + " sana mesaj var!";
+      var intro = "Öğretmenin " + teacherName + trAblativeSuffix(teacherName) + " mesaj var.";
       if(fromEl){ fromEl.textContent = intro; }
       var msgText = data.msg || "";
       if(msgText){ msgText = msgText.charAt(0).toUpperCase() + msgText.slice(1); }
@@ -4504,6 +4477,23 @@ document.addEventListener('DOMContentLoaded', function(){
   </div>
 </div>
 
+<script>
+function trAblativeSuffix(name){
+  // TDK uyumlu: 'dan/'den/'tan/'ten
+  var n = (name||"").trim();
+  if(!n) return "'dan";
+  var letters = n.replace(/[^A-Za-zÇĞİÖŞÜçğıöşü]/g, "");
+  if(!letters) return "'dan";
+  var lastChar = letters.slice(-1).toLowerCase();
+  var vowels = letters.match(/[aeıioöuü]/gi) || [];
+  var lastVowel = vowels.length ? vowels[vowels.length-1].toLowerCase() : 'a';
+  var unvoiced = "fstkçşhp"; // sert ünsüzler
+  var cons = unvoiced.indexOf(lastChar) >= 0 ? 't' : 'd';
+  var back = "aıou";
+  var vowel = back.indexOf(lastVowel) >= 0 ? 'a' : 'e';
+  return "'" + cons + (vowel === 'a' ? 'an' : 'en');
+}
+</script>
 </body>
 </html>
 

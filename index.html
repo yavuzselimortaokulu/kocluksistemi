@@ -68,11 +68,12 @@
       border-radius:14px;
       padding:14px 14px 48px;
       transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+     display:flex; flex-direction:column; 
     }
     .classCard:hover{ transform:translateY(-2px); box-shadow:0 8px 18px rgba(0,0,0,.25); border-color:#3b4b6a; }
-    .className{ font-weight:900; font-size:20px; letter-spacing:.3px; margin-bottom:8px; }
+    .className{ font-weight:900; font-size:20px; letter-spacing:.3px; margin-bottom:8px; word-break:break-word; }
     .classPick{
-      position:absolute; left:14px; right:14px; bottom:14px;
+      position:static; width:100%; margin-top:auto;
       border:0; border-radius:10px; padding:10px 12px; cursor:pointer;
       color:#fff; font-weight:800;
       background:linear-gradient(90deg,var(--accent1),var(--accent2));
@@ -705,7 +706,106 @@ button.exitSmall .label{line-height:1}
 }
 .targetFloat:hover{ transform:translateY(-1px); }
 
-</style>
+
+/* === Gözlük animasyonlu "Öğrencileri Gör" butonu (metin yerine ikon) === */
+.classCard .classPick.glassesBtn{
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  padding:0; min-height:56px;
+  background: linear-gradient(90deg,var(--accent1),var(--accent2));
+  position:relative; overflow:hidden;
+}
+.classCard .classPick.glassesBtn:before{
+  /* subtle glossy sweep on hover */
+  content:""; position:absolute; inset:-40% -20% auto auto; width:40%; height:180%;
+  transform: rotate(25deg) translateX(120%);
+  background: linear-gradient(90deg, rgba(255,255,255,.0), rgba(255,255,255,.25), rgba(255,255,255,.0));
+  transition: transform .6s ease;
+  pointer-events:none;
+}
+.classCard .classPick.glassesBtn:hover:before{ transform: rotate(25deg) translateX(-40%); }
+
+/* Accessible hidden label */
+.classCard .classPick.glassesBtn .sr-only{ 
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+
+/* Glasses icon */
+.glassesIcon{ width:30px; height:30px; display:block; }
+.glassesIcon svg{ width:100%; height:100%; display:block; }
+
+/* Blink animation for the "eyes" (lenses) */
+@keyframes blink {
+  0%, 92%, 100% { transform: scaleY(1); }
+  94% { transform: scaleY(0.2); }
+  96% { transform: scaleY(1); }
+}
+
+/* Shine animation on the lenses */
+@keyframes shine {
+  0% { stroke-dashoffset: 24; opacity: .0; }
+  30% { opacity: .5; }
+  60% { opacity: .0; }
+  100% { stroke-dashoffset: -24; opacity: .0; }
+}
+
+.glassesIcon .lens{ transform-origin: 50% 50%; animation: blink 6s infinite ease-in-out; }
+.glassesIcon .shine{ stroke-dasharray: 24; stroke-dashoffset: 24; animation: shine 3.2s infinite ease-in-out; }
+
+
+/* === Warm navy→green gradient & hover animation === */
+.classCard .classPick.glassesBtn{
+  background: linear-gradient(90deg, #0e2a6f, #10a37f); /* lacivert → sıcak yeşil */
+  transition: background .25s ease, transform .2s ease;
+}
+.classCard .classPick.glassesBtn:hover{
+  background: linear-gradient(90deg, #12398d, #19c18f);
+}
+.glassesIcon{ width:40px; height:40px; transition: transform .2s ease; }
+.classCard .classPick.glassesBtn:hover .glassesIcon{ transform: scale(1.08); }
+
+
+/* === Mock'a uyum: kart & buton düzeni === */
+.classGrid{
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:18px;
+}
+
+.classCard{
+  background:#0f1b2b;           /* daha koyu kart */
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:18px;
+  padding:16px 16px 20px;
+  box-shadow: 0 10px 24px rgba(6,14,30,.45), inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.classCard .className{
+  font-weight:800;
+  font-size:20px;
+  letter-spacing:.3px;
+  color:#ecf2ff;
+  margin-bottom:12px;
+  display:flex; align-items:center; gap:8px;
+}
+
+/* Çöp kutusu sağ üstte kalsın */
+.classCard .delFloat{
+  top:10px; right:10px;
+}
+
+/* İçteki gradient buton / panel */
+.classCard .classPick.glassesBtn{
+  border-radius:14px;
+  min-height:64px;
+  margin-top:6px;
+  background: linear-gradient(90deg, #0e2a6f 0%, #10a37f 100%);
+  border:1px solid rgba(255,255,255,.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 6px 18px rgba(9, 30, 66, .35);
+}
+
+.glassesIcon{ width:44px; height:44px; } /* ikon biraz daha büyük */
+.classCard .classPick.glassesBtn:hover .glassesIcon{ transform: scale(1.1); }
+
+</style></style>
 <style>
 /* --- Açılır Pencere (Rapor Modal) --- */
 #reportOverlay{position:fixed;inset:0;display:none;background:rgba(0,0,0,.45);z-index:9998;}
@@ -1040,6 +1140,193 @@ button.exitSmall .label{line-height:1}
 }
 </style>
 
+
+<style id="teacher-message-css">
+/* --- Öğretmen Mesajı Sekmesi (Modal) --- */
+#repTab-message{ display:none; }
+#repTab-message.active{ display:block; }
+#repTabMessageBtn.pill.active{ box-shadow:inset 0 0 0 1px var(--accent2); }
+#teacherMsgText{ background:rgba(255,255,255,.02); border:1px solid var(--cardBorder); border-radius:12px; padding:10px; color:var(--text); }
+#teacherMsgText:focus{ outline:none; border-color:var(--accent2); box-shadow:0 0 0 3px rgba(6,182,212,.15); }
+
+/* --- Öğrenci tarafı: şeffaf mesaj penceresi --- */
+#studentMsgOverlay{ position:fixed; inset:0; display:none; z-index:11000; background:rgba(15,23,42,.55); backdrop-filter: blur(3px); }
+#studentMsgBox{ position:fixed; left:50%; top:11%; transform:translateX(-50%); width:min(560px, 92vw); background:rgba(255,255,255,.04); border:1px solid var(--cardBorder); border-radius:16px; box-shadow:0 24px 60px rgba(0,0,0,.5); }
+#studentMsgBox .hdr{ display:flex; align-items:center; gap:10px; padding:14px; border-bottom:1px solid var(--cardBorder); }
+#studentMsgBox .hdr .title{ font-weight:700; letter-spacing:.2px; }
+#studentMsgBox .body{ padding:14px; line-height:1.6; }
+#studentMsgBox .from{ opacity:.8; margin-bottom:6px; }
+#studentMsgBox .actions{ display:flex; justify-content:flex-end; gap:8px; padding:0 14px 14px 14px; }
+#studentMsgBox .actions .pill{ cursor:pointer; }
+
+/* Sekmeler: sadece aktif olan görünsün */
+#repTab-daily, #repTab-weekly, #repTab-monthly, #repTab-message{ display:none; }
+#repTab-daily.active, #repTab-weekly.active, #repTab-monthly.active, #repTab-message.active{ display:block; }
+
+/* Mesaj sekmesi açıkken modalı yukarı al */
+#teacherStudentDetail.topMode.asModal{ inset: 10% auto auto 50%; transform: translateX(-50%); }
+/* Daha küçük ekranlar için biraz daha aşağı */
+@media (max-width: 640px){
+  #teacherStudentDetail.topMode.asModal{ inset: 6% auto auto 50%; }
+}
+
+/* Gönder satırı tam genişlik */
+#repTab-message .row{ display:block !important; margin-top:10px !important; }
+#repTab-message .row .action{ display:block; width:100%; margin:0; }
+#teacherMsgStatus{ display:none; } /* Toast geldiği için yazı uyarısını gizliyoruz */
+
+/* Öğretmen Toast (şeffaf modal) */
+#teacherToast{position:fixed; left:50%; top:8%;transform:translateX(-50%);background:rgba(34,197,94,.14);border:1px solid rgba(34,197,94,.55);border-radius:14px;padding:12px 16px;box-shadow:0 18px 40px rgba(34,197,94,.25);backdrop-filter: blur(4px);color:#ecfdf5;z-index:12000;display:none;max-width:min(92vw,640px);text-align:center;font-weight:700;}
+#teacherToast.show{ display:block; animation: toastFade .2s ease-out; }
+@keyframes toastFade { from{ opacity:0; transform:translateX(-50%) translateY(-6px);} to{ opacity:1; transform:translateX(-50%) translateY(0);} }
+
+/* Mesaj kutusu: içerik ayırt edici arka plan */
+#studentMsgBox .bubble{
+  margin-top:8px;
+  background:rgba(255,255,255,.08);
+  border:1px solid var(--cardBorder);
+  border-radius:12px;
+  padding:12px 14px;
+  line-height:1.7;
+}
+
+/* Başlık satırı: sağdaki kapat düğmesi kaldırıldı, boşluklar ayarlandı */
+#studentMsgBox .hdr{ gap:8px; }
+#studentMsgBox .hdr .title{ font-weight:800; }
+
+/* Açıklama metni */
+#studentMsgFrom{ opacity:.9; margin-bottom:2px; font-weight:600; }
+
+/* Alt eylem alanı ortalı ve kırmızı şeffaf stil */
+#studentMsgBox .actions{ justify-content:center; }
+#studentMsgBox .actions .pill.danger{
+  background:rgba(239,68,68,.14);
+  border:1px solid rgba(239,68,68,.6);
+  color:#ffe4e6;
+  font-weight:700;
+  padding:10px 18px;
+  min-width:220px;
+  text-align:center;
+}
+#studentMsgBox .actions .pill.danger:hover{ filter:brightness(1.05); }
+
+/* ---- Patch: Mesaj sayfası sınırları belirgin + şeffaflık %10 azaltıldı ---- */
+#studentMsgBox{
+  background: rgba(255,255,255,.14) !important; /* önce .04 idi => daha opak */
+  border: 2px solid rgba(255,255,255,.22) !important;
+  box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 0 1px rgba(255,255,255,.06) inset !important;
+}
+#studentMsgBox .bubble{
+  background: rgba(255,255,255,.18) !important; /* önce .08 idi */
+  border-color: rgba(255,255,255,.26) !important;
+}
+</style>
+
+
+<style>
+/* === Reusable navy→green animated gradient with glossy sweep === */
+.animated-navy-green{
+  position: relative;
+  overflow: hidden;
+  color:#fff;
+  border: 1px solid rgba(255,255,255,.06);
+  transition: background .25s ease;
+}
+/* default gradient */
+.pill.animated-navy-green,
+.action.animated-navy-green{
+  background: linear-gradient(90deg, #0e2a6f, #10a37f);
+}
+/* hover gradient */
+.pill.animated-navy-green:hover,
+.action.animated-navy-green:hover{
+  background: linear-gradient(90deg, #12398d, #19c18f);
+}
+
+/* glossy sweep */
+.animated-navy-green::before{
+  content:"";
+  position:absolute;
+  inset:-40% -20% auto auto;
+  width:40%; height:180%;
+  transform: rotate(25deg) translateX(120%);
+  background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,255,255,.25), rgba(255,255,255,0));
+  transition: transform .6s ease;
+  pointer-events:none;
+}
+.animated-navy-green:hover::before{
+  transform: rotate(25deg) translateX(-40%);
+}
+
+/* keep active pill glow if any */
+.pill.active.animated-navy-green{
+  box-shadow:0 0 0 3px rgba(16,185,129,.35);
+}
+</style>
+
+<style>
+/* === Red danger button variant for modal close === */
+.btn-danger{
+  position: relative;
+  overflow: hidden;
+  color:#fff;
+  border: 1px solid rgba(255,255,255,.06);
+  transition: background .2s ease, transform .05s ease;
+}
+.pill.btn-danger,
+.action.btn-danger{
+  background: linear-gradient(90deg, #b91c1c, #ef4444) !important; /* dark red -> red */
+}
+.pill.btn-danger:hover,
+.action.btn-danger:hover{
+  background: linear-gradient(90deg, #991b1b, #dc2626) !important;
+}
+.pill.btn-danger:active,
+.action.btn-danger:active{
+  transform: translateY(1px);
+}
+</style>
+
+<style id="mobile-classes-patch">
+/* === Mobile Optimization Patch: Class Grid fits max per row without breaking layout === */
+@media (max-width: 1200px){
+  .classGrid{ grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important; gap:16px !important; }
+}
+@media (max-width: 992px){
+  .classGrid{ grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important; }
+}
+@media (max-width: 820px){
+  .classGrid{ grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important; }
+  .classCard{ padding:14px 14px 16px !important; border-radius:16px !important; }
+  .classCard .className{ font-size:18px !important; margin-bottom:10px !important; }
+  .classCard .classPick.glassesBtn{ min-height:56px !important; }
+  .glassesIcon{ width:38px !important; height:38px !important; }
+}
+@media (max-width: 680px){
+  .classGrid{ grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)) !important; gap:14px !important; }
+  .classCard .className{ font-size:17px !important; }
+  .classCard .classPick.glassesBtn{ min-height:52px !important; }
+  .glassesIcon{ width:34px !important; height:34px !important; }
+}
+@media (max-width: 520px){
+  .classGrid{ grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; gap:12px !important; }
+  .classCard{ padding:12px 12px 14px !important; }
+  .classCard .className{ font-size:16px !important; }
+  .classCard .classPick.glassesBtn{ min-height:48px !important; }
+  .glassesIcon{ width:30px !important; height:30px !important; }
+}
+@media (max-width: 420px){
+  .classGrid{ grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important; gap:10px !important; }
+  .classCard .className{ font-size:15px !important; }
+  .classCard .classPick.glassesBtn{ min-height:44px !important; }
+  .glassesIcon{ width:28px !important; height:28px !important; }
+}
+/* Ensure search row doesn't overflow */
+@media (max-width: 560px){
+  #classesSection .row{ flex-wrap: wrap; }
+  #classesSection .row .action{ max-width: 100% !important; }
+}
+</style>
 </head>
 <style>
 /* ===== Ders Hedefleri (Goals Page) — Modern görünüm ===== */
@@ -1386,14 +1673,14 @@ button.exitSmall .label{line-height:1}
 <span class="label">Çıkış</span></button>
 </div>
 <div class="pillTabs" id="teacherTopTabs">
-<button class="pill active" id="tabClasses" onclick="showTeacherSection('classes')">Sınıflar</button>
-<button class="pill" id="tabFavorites" onclick="showTeacherSection('favorites')">Favorilerim</button>
+<button class="pill active animated-navy-green" id="tabClasses" onclick="showTeacherSection('classes')">Sınıflar</button>
+<button class="pill animated-navy-green" id="tabFavorites" onclick="showTeacherSection('favorites')">Favorilerim</button>
 </div>
 <!-- Sınıflar -->
 <div id="classesSection">
 <div class="row" style="margin-top:10px; margin-bottom:6px">
 <input autocomplete="off" class="grow" id="newClass" placeholder="örn: 8/A" type="text"/>
-<button class="action" onclick="addClass()" style="max-width:220px" type="button">Sınıf Ekle</button>
+<button class="action animated-navy-green" onclick="addClass()" style="max-width:220px" type="button">Sınıf Ekle</button>
 </div>
 <div class="classGrid" id="classGrid"></div>
 <div class="list" id="classStudents" style="display:none">
@@ -1415,9 +1702,10 @@ button.exitSmall .label{line-height:1}
 <div class="modalTabs">
 <button class="pill active" id="repTabDailyBtn" onclick="showReportTab('daily')">Günlük</button>
 <button class="pill" id="repTabWeeklyBtn" onclick="showReportTab('weekly')">Haftalık</button>
+<button class="pill" id="repTabMessageBtn" onclick="showReportTab('message')">Öğretmen Mesajı</button>
 <button class="pill" id="repTabMonthlyBtn" onclick="showReportTab('monthly')">Aylık</button>
 </div>
-<button class="pill modalClose" onclick="closeReportModal()">Kapat ×</button>
+<button class="pill modalClose btn-danger" onclick="closeReportModal()">Kapat ×</button>
 </div>
 <div class="active" id="repTab-daily">
 <div class="sectionTitle" id="tsdTitle"></div>
@@ -1451,6 +1739,15 @@ button.exitSmall .label{line-height:1}
 </div>
 <div class="sectionTitle" style="margin-top:10px">Aylık Toplam (Ders Bazlı)</div>
 <div class="exportCard" id="tMonthTotals"></div>
+</div>
+<div id="repTab-message">
+  <div class="sectionTitle">Öğretmen Mesajı</div>
+  <div class="ghost" style="margin-bottom:6px">Bu mesaj <strong id="teacherMsgStudentName">seçili öğrenci</strong> için gösterilecektir.</div>
+  <textarea id="teacherMsgText" rows="5" style="width:100%;resize:vertical;min-height:120px;" placeholder="Öğrenciye iletmek istediğiniz mesajı yazın..."></textarea>
+  <div class="row" style="justify-content:flex-end; gap:8px; margin-top:8px;">
+    <span id="teacherMsgStatus" class="ghost" style="margin-right:auto"></span>
+    <button class="action" type="button" onclick="sendTeacherMessage()">Gönder</button>
+  </div>
 </div>
 </div>
 <!-- PDF için görünmeyen export alanı -->
@@ -1949,7 +2246,7 @@ function openTargetForCurrent(){
           const card=document.createElement("div"); card.className="classCard";
 
           const title=document.createElement("div"); title.className="className"; title.textContent=name;
-          const pick=document.createElement("button"); pick.className="classPick"; pick.textContent="Öğrencileri Gör";
+          const pick=document.createElement("button"); pick.className="classPick"; pick.classList.add("glassesBtn"); pick.innerHTML='<span class="glassesIcon" aria-hidden="true"><svg viewBox="0 0 64 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="2">  <defs>    <radialGradient id="lensHL" cx="50%" cy="35%" r="70%">      <stop offset="0%" stop-color="white" stop-opacity=".55"/>      <stop offset="60%" stop-color="white" stop-opacity=".10"/>      <stop offset="100%" stop-color="white" stop-opacity="0"/>    </radialGradient>  </defs>  <circle class="lens" cx="16" cy="12" r="8" fill="rgba(255,255,255,.08)"></circle>  <circle class="lens" cx="48" cy="12" r="8" fill="rgba(255,255,255,.08)"></circle>  <circle cx="16" cy="12" r="8" fill="url(#lensHL)" />  <circle cx="48" cy="12" r="8" fill="url(#lensHL)" />  <path d="M24 12h16" />  <path d="M2 10c2-6 10-8 14-6" />  <path d="M62 10c-2-6-10-8-14-6" />  <path class="shine" d="M10 8c4-2 8-2 12 0" stroke="white" opacity=".6"/>  <path class="shine" d="M42 8c4-2 8-2 12 0" stroke="white" opacity=".6"/></svg></span><span class="sr-only">Öğrencileri Gör</span>'; pick.setAttribute("title","Öğrencileri Gör");
           pick.onclick=()=>{
             activeClassName=name;
             document.querySelectorAll(".classPick").forEach(b=>b.classList.remove("active"));
@@ -3669,7 +3966,7 @@ document.addEventListener('DOMContentLoaded', function(){
       const ret = __orig_logout_final2.apply(this, arguments);
       if(wasTeacher){
         // Bir sonraki event döngüsünde çalıştır ki diğer yönlendirmelerin üstüne yazsın
-        setTimeout(function(){ try{ window.showTab('teacherLogin'); }catch(_){} }, 0);
+        
       }
       // bayrağı temizle
       window.__logoutFromTeacher = false;
@@ -3687,11 +3984,7 @@ document.addEventListener('DOMContentLoaded', function(){
   if (typeof window.showTab === 'function'){
     const __orig_showTab_block = window.showTab;
     window.showTab = function(tab){
-      if (window.__forceTeacherLogin && tab === 'studentLogin'){
-        // Bayrak bir defalık çalışır
-        window.__forceTeacherLogin = false;
-        tab = 'teacherLogin';
-      }
+      
       return __orig_showTab_block.apply(this, arguments.length ? [tab] : arguments);
     };
   }
@@ -3701,7 +3994,7 @@ document.addEventListener('DOMContentLoaded', function(){
     window.logout = function(){
       // Çıkışa basıldığı anki öğretmen durumu kaydedilir
       var wasTeacherCtx = !!(window.currentTeacherId) || !!window.__logoutFromTeacher;
-      if (wasTeacherCtx){ window.__forceTeacherLogin = true; }
+      if (wasTeacherCtx){  }
       var ret = __orig_logout_block.apply(this, arguments);
       if (wasTeacherCtx){
         // Ek olarak güvenceye al
@@ -3736,7 +4029,7 @@ document.addEventListener('DOMContentLoaded', function(){
       var wasTeacher = !!(window.currentTeacherId);
       var ret = __orig_logout_hard.apply(this, arguments);
       if(wasTeacher){
-        try{ window.activeRole = 'teacher'; }catch(_){}
+        try{ window.activeRole = 'student'; }catch(_){}
         // Öğrenci sekmesine yönlendirme yapan kodları yenmek için iki kademeli çağrı
         activateTeacherLoginTab();
         setTimeout(activateTeacherLoginTab, 0);
@@ -3749,9 +4042,7 @@ document.addEventListener('DOMContentLoaded', function(){
   if (typeof window.showTab === 'function'){
     const __orig_showTab_guard = window.showTab;
     window.showTab = function(tab){
-      if(window.activeRole==='teacher' && tab==='studentLogin'){
-        tab = 'teacherLogin';
-      }
+      
       return __orig_showTab_guard.apply(this, arguments.length ? [tab] : arguments);
     };
   }
@@ -3779,9 +4070,7 @@ document.addEventListener('DOMContentLoaded', function(){
   if (typeof window.showTab === 'function'){
     const __orig_showTab_last = window.showTab;
     window.showTab = function(tab){
-      if(window.__logoutFromTeacher && tab === 'studentLogin'){
-        tab = 'teacherLogin';
-      }
+      
       return __orig_showTab_last.apply(this, arguments.length ? [tab] : arguments);
     };
   }
@@ -3799,7 +4088,7 @@ document.addEventListener('DOMContentLoaded', function(){
           var tb = document.getElementById('tabTeacher'); if(tb) tb.classList.add('active');
         }catch(_){}
         // En son aşamada teacherLogin'e dön
-        setTimeout(function(){ try{ window.showTab('teacherLogin'); }catch(_){} }, 0);
+        
       }
       window.__logoutFromTeacher = false;
       return ret;
@@ -3954,6 +4243,267 @@ document.addEventListener('DOMContentLoaded', function(){
 })();
 </script>
 
+
+
+
+
+    
+  </div>
+</div>
+
+  </div>
+</div>
+
+
+
+<script id="teacher-message-js">
+(function(){
+
+  // Türkçe ayrılma hali (ablative) ekleyen yardımcı: "Emre Demirbaş’tan"
+  function trAblativeSuffix(name){
+  // TDK: -(d/t)(a/e)n  -> 'dan/'den/'tan/'ten  (ASCII apostrophe)
+  var n = (name||"").trim();
+  if(!n) return "'dan";
+  // Keep only letters to detect last letter & last vowel
+  var letters = n.replace(/[^A-Za-zÇĞİÖŞÜçğıöşü]/g, "");
+  if(!letters) return "'dan";
+  var lastChar = letters.slice(-1).toLowerCase();
+  var vowelsAll = letters.match(/[aeıioöuü]/gi) || [];
+  var lastVowel = vowelsAll.length ? vowelsAll[vowelsAll.length-1].toLowerCase() : 'a';
+  var unvoiced = "fstkçşhp"; // sert ünsüzler
+  var cons = unvoiced.indexOf(lastChar) >= 0 ? 't' : 'd';
+  var back = "aıou";
+  var vow = back.indexOf(lastVowel) >= 0 ? 'a' : 'e';
+  return "'" + cons + (vow==='a' ? 'an' : 'en');
+}function deriveTeacherName(){
+    var n = (window.currentTeacherName||"").trim();
+    if(!n){
+      try{
+        var el=[].slice.call(document.querySelectorAll('body *')).find(function(x){ return /Hoş geldiniz,\s*/.test(x.textContent||''); });
+        if(el){
+          var m=(el.textContent||'').match(/Hoş geldiniz,\s*(.+)/);
+          if(m) n=m[1].trim();
+        }
+      }catch(e){}
+    }
+    // Parantez içindeki kod varsa çıkar: "Emre Demirbaş (703501)" -> "Emre Demirbaş"
+    n = n.replace(/\(\d+\)\s*$/, '').trim();
+    return n || "Öğretmen";
+  }
+
+  // Helper: resolve selected student id reliably
+  function resolveSelectedStudentId(){
+    var root = document.getElementById("teacherStudentDetail");
+    var sid = root && root.dataset ? root.dataset.studentNum : "";
+    if(!sid && typeof currentDetailNum !== "undefined" && currentDetailNum!=null){ sid = String(currentDetailNum); }
+    if(!sid && typeof window.currentDetailNum !== "undefined" && window.currentDetailNum!=null){ sid = String(window.currentDetailNum); }
+    if(!sid && typeof window._msgStudentNum !== "undefined" && window._msgStudentNum!=null){ sid = String(window._msgStudentNum); }
+    if(!sid){
+      var t = (document.getElementById("tsdTitle")||{}).textContent || "";
+      var m = t.match(/\((\d+)\)/);
+      if(m) sid = m[1];
+    }
+    return sid || "";
+  }
+
+  // Yeni sekme desteği: message
+  var _origShowReportTab = window.showReportTab;
+  window.showReportTab = function(tab){
+    if (typeof _origShowReportTab === "function") { _origShowReportTab(tab); }
+    // Toggle message tab manually
+    var p = document.getElementById("repTab-message");
+    var b = document.getElementById("repTabMessageBtn");
+    if (p) p.classList.toggle("active", tab === "message");
+    if (b) b.classList.toggle("active", tab === "message");
+    var root = document.getElementById("teacherStudentDetail");
+    if(root) root.classList.toggle("topMode", tab === "message");
+  };
+
+  // Öğretmenden öğrenciye mesaj bırak
+  window.sendTeacherMessage = function()
+{
+  var ta = document.getElementById("teacherMsgText");
+  var s = (ta && ta.value || "").trim();
+  var sid = (function resolveSelectedStudentId(){
+    var root = document.getElementById("teacherStudentDetail");
+    var sid = root && root.dataset ? root.dataset.studentNum : "";
+    if(!sid && typeof currentDetailNum !== "undefined" && currentDetailNum!=null){ sid = String(currentDetailNum); }
+    if(!sid && typeof window.currentDetailNum !== "undefined" && window.currentDetailNum!=null){ sid = String(window.currentDetailNum); }
+    if(!sid && typeof window._msgStudentNum !== "undefined" && window._msgStudentNum!=null){ sid = String(window._msgStudentNum); }
+    if(!sid){
+      var t = (document.getElementById("tsdTitle")||{}).textContent || "";
+      var m = t.match(/\((\d+)\)/);
+      if(m) sid = m[1];
+    }
+    return sid || "";
+  })();
+  if(!sid){ alert("Öğrenci seçili değil."); return; }
+  if(!s){ alert("Lütfen mesaj yazın."); return; }
+  function deriveTeacherName(){
+    var n = (window.currentTeacherName||"").trim();
+    if(!n){
+      try{
+        var el=[].slice.call(document.querySelectorAll('body *')).find(function(x){ return /Hoş geldiniz,\s*/.test(x.textContent||''); });
+        if(el){
+          var m=(el.textContent||'').match(/Hoş geldiniz,\s*(.+)/);
+          if(m) n=m[1].trim();
+        }
+      }catch(e){}
+    }
+    n = n.replace(/\(\d+\)\s*$/, '').trim();
+    return n || "Öğretmen";
+  }
+  var tname = deriveTeacherName();
+  var payload = { msg: s, teacher: tname, ts: Date.now(), fromTeacherId: (typeof currentTeacherId!=="undefined" ? currentTeacherId : null) };
+  try{
+    if(typeof db === "undefined"){ throw new Error("Veritabanı bağlantısı yok (db)."); }
+    var ref = db.ref("students/"+sid+"/teacherMessage");
+    ref.set(payload).then(function(){
+      var st = document.getElementById("teacherMsgStatus"); if(st){ st.textContent=""; }
+      if(ta) ta.value = "";
+      if(typeof showTeacherToast === "function"){ showTeacherToast("Mesaj öğrenciye iletildi."); }
+    }).catch(function(e){
+      alert("Kayıt hatası: " + e.message);
+    });
+  }catch(e){
+    alert("Kayıt hatası: " + e.message);
+  }
+}
+;
+
+  // Öğrenci panelinde mesajı göster
+  window.maybeShowStudentMessage = function()
+{
+  var sid = (typeof currentStudent !== "undefined" && currentStudent!=null) ? String(currentStudent) : "";
+  if(!sid && typeof window.currentStudent !== "undefined" && window.currentStudent!=null){ sid = String(window.currentStudent); }
+  if(!sid && typeof window._msgStudentNum !== "undefined" && window._msgStudentNum!=null){ sid = String(window._msgStudentNum); }
+  if(!sid){
+    var t = (document.getElementById("tsdTitle")||{}).textContent || "";
+    var m = t.match(/\((\d+)\)/);
+    if(m) sid = m[1];
+  }
+  if(!sid) return;
+  try{
+    if(typeof db === "undefined") return;
+    db.ref("students/"+sid+"/teacherMessage").get().then(function(snap){
+      if(!snap || !snap.exists()) return;
+      var data = snap.val() || {};
+      if(!data || !data.msg) return;
+      
+  function trAblativeSuffix(name){
+    var n=(name||"").trim();
+    if(!n) return "’dan";
+    var letters = n.replace(/[^A-Za-zÇĞİÖŞÜçğıöşü]/g, "");
+    var last = letters ? letters.slice(-1) : 'n';
+    var vowels = "aıoueiöüAIOUEİÖÜ";
+    var back = "aıouAIOU";
+    var isVowel = vowels.indexOf(last) !== -1;
+    var cons = isVowel ? 'n' : last.toLowerCase();
+    var vow = back.indexOf(last) !== -1 ? 'a' : 'e';
+    return "’" + cons + (vow==='a' ? 'an' : 'en');
+  }
+
+      var ov = document.getElementById("studentMsgOverlay");
+      var fromEl = document.getElementById("studentMsgFrom");
+      var mEl = document.getElementById("studentMsgContent");
+      var teacherName = (data.teacher || (typeof deriveTeacherName==='function'? deriveTeacherName() : 'Öğretmen'));
+      var intro = teacherName + trAblativeSuffix(teacherName) + " sana mesaj var!";
+      if(fromEl){ fromEl.textContent = intro; }
+      var msgText = data.msg || "";
+      if(msgText){ msgText = msgText.charAt(0).toUpperCase() + msgText.slice(1); }
+      if(mEl) mEl.textContent = msgText;
+      if(ov) ov.style.display = "block";
+    });
+  }catch(e){}
+}
+;
+
+  window.closeStudentMsg = function()
+{
+  var sid = (typeof currentStudent !== "undefined" && currentStudent!=null) ? String(currentStudent) : "";
+  if(!sid && typeof window.currentStudent !== "undefined" && window.currentStudent!=null){ sid = String(window.currentStudent); }
+  if(!sid && typeof window._msgStudentNum !== "undefined" && window._msgStudentNum!=null){ sid = String(window._msgStudentNum); }
+  try{
+    if(typeof db !== "undefined" && sid){
+      db.ref("students/"+sid+"/teacherMessage").set(null).then(function(){
+        var ov = document.getElementById("studentMsgOverlay");
+        if(ov) ov.style.display = "none";
+      }).catch(function(){
+        var ov = document.getElementById("studentMsgOverlay");
+        if(ov) ov.style.display = "none";
+      });
+    }else{
+      var ov = document.getElementById("studentMsgOverlay");
+      if(ov) ov.style.display = "none";
+    }
+  }catch(_){
+    var ov = document.getElementById("studentMsgOverlay");
+    if(ov) ov.style.display = "none";
+  }
+}
+;
+
+  // teacherShowStudent çalışınca hem görünen metni hem de güvenli öğrenci id bilgisini kaydet
+  if (typeof window.teacherShowStudent === "function"){
+    var _origTSS = window.teacherShowStudent;
+    window.teacherShowStudent = function(num){
+      _origTSS(num);
+      var root = document.getElementById("teacherStudentDetail");
+      if(root) root.dataset.studentNum = String(num || "");
+      window._msgStudentNum = num;
+      // Başlığın kopyası
+      setTimeout(function(){
+        try {
+          var title = document.getElementById("tsdTitle");
+          var span = document.getElementById("teacherMsgStudentName");
+          if(title && span){ span.textContent = title.textContent || "seçili öğrenci"; }
+        } catch(e){}
+      }, 200);
+    };
+  }
+
+  // Öğrenci tabına geçişte mesajı otomatik göster
+  if (typeof window.showStudentTab === "function"){
+    var _origSST = window.showStudentTab;
+    window.showStudentTab = function(tab){
+      _origSST(tab);
+      if(tab === "entry"){ try { window.maybeShowStudentMessage(); } catch(e){} }
+    };
+  }
+})();
+
+  // Şeffaf toast
+  window.showTeacherToast = function(text){
+    var el = document.getElementById("teacherToast");
+    if(!el) return;
+    el.textContent = text || "Mesaj iletildi.";
+    el.classList.add("show");
+    setTimeout(function(){ el.classList.remove("show"); }, 3000);
+  };
+</script>
+
+
+
+<!-- Öğretmen bildirimi (şeffaf modal) -->
+<div id="teacherToast" role="status" aria-live="polite">Mesaj iletildi.</div>
+
+
+
+<div id="studentMsgOverlay" aria-hidden="true" style="display:none">
+  <div id="studentMsgBox" role="dialog" aria-label="Öğretmen Mesajı">
+    <div class="hdr">
+      <div class="title">Öğretmen Mesajı</div>
+    </div>
+    <div class="body">
+      <div class="from" id="studentMsgFrom"></div>
+      <div id="studentMsgContent" class="bubble"></div>
+    </div>
+    <div class="actions center">
+      <button class="pill danger" onclick="closeStudentMsg()">Kapat ve Sil</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
 
@@ -4091,3 +4641,28 @@ document.addEventListener('DOMContentLoaded', function(){
 <!-- ===== /ALIGNMENT RESTORE ===== -->
 
 <!-- ===== MOB
+
+<script>
+/* === SAFE TAB LOGIC SANITY ===
+   Bu blok, çıkış sonrası sekme davranışını normalize eder:
+   - Öğretmenden çıkışta herhangi bir yönlendirme bayrağı KULLANILMAZ.
+   - İlk tıklamada sekme değişir (öğrenci-veli giriş engellenmez).
+   - Çıkıştan sonra varsayılan sekme öğrenci-veli giriştir.
+*/
+(function(){
+  try{
+    // Her ihtimale karşı varsayılanı kesinleştir
+    if (typeof window.logout === 'function') {
+      var __orig_logout_sane = window.logout;
+      window.logout = function(){
+        var ret = __orig_logout_sane.apply(this, arguments);
+        try { window.__forceTeacherLogin = false; } catch(_) {}
+        try { window.__logoutFromTeacher = false; } catch(_) {}
+        try { window.activeRole = 'student'; } catch(_) {}
+        try { if (typeof window.showTab === 'function') window.showTab('studentLogin'); } catch(_) {}
+        return ret;
+      };
+    }
+  }catch(_){}
+})();
+</script>
